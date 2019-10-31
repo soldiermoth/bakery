@@ -3,10 +3,15 @@ package main
 import (
 	"net"
 	"net/http"
+	"os"
 )
 
 func main() {
-	c := LoadConfig()
+	c, err := LoadConfig()
+	if err != nil {
+		os.Exit(-1)
+	}
+
 	logger := c.GetLogger()
 
 	listener, err := net.Listen("tcp", c.Listen)

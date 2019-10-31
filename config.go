@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,7 +21,8 @@ type HTTPClient struct {
 	Timeout time.Duration `envconfig:"CLIENT_TIMEOUT" default:"2s"`
 }
 
-func (h HTTPClient) new() *http.Client {
+// New creates a new instance of the HTTP Client
+func (h HTTPClient) New() *http.Client {
 	// https://medium.com/@nate510/don-t-use-go-s-default-http-client-4804cb19f779
 	client := &http.Client{
 		Timeout: h.Timeout,
@@ -29,8 +31,10 @@ func (h HTTPClient) new() *http.Client {
 }
 
 // LoadConfig loads the configuration with environment variables injected
-func LoadConfig() Config {
-	return Config{}
+func LoadConfig() (Config, error) {
+	var c Config
+	err := envconfig.Process("bakery", &c)
+	return c, err
 }
 
 // GetLogger generates a logger
