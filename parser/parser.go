@@ -68,8 +68,9 @@ func parse(filters string) (*MediaFilters, error) {
 
 		switch key := subparts[1]; key {
 		case "video":
-			mf.Videos = []VideoType{
-				VideoType(subparts[2]),
+			values := strings.Split(subparts[2], ",")
+			for _, videoType := range values {
+				mf.Videos = append(mf.Videos, VideoType(videoType))
 			}
 		}
 

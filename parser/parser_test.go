@@ -20,6 +20,13 @@ func TestParseUrl(t *testing.T) {
 				Videos: []VideoType{VideoHDR10},
 			},
 		},
+		{
+			"two video types",
+			"/video(hdr10,hevc)/",
+			MediaFilters{
+				Videos: []VideoType{VideoHDR10, VideoHEVC},
+			},
+		},
 	}
 
 	//tests := map[string]MediaFilters{
