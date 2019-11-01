@@ -11,7 +11,7 @@ import (
 
 // Config holds all the configuration for this service
 type Config struct {
-	Listen   string `default:":8080"`
+	Listen   string `envconfig:"HTTP_PORT" default:":8080"`
 	LogLevel string `envconfig:"LOG_LEVEL" default:"debug"`
 	Client   HTTPClient
 }
