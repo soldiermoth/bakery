@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -39,7 +40,17 @@ func TestParseUrl(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if !reflect.DeepEqual(output, test.expected) {
+			jsonOutput, err := json.Marshal(output)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			jsonExpected, err := json.Marshal(test.expected)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !reflect.DeepEqual(jsonOutput, jsonExpected) {
 				t.Errorf("wrong struct generated.\nwant %#v\ngot %#v", test.expected, output)
 			}
 		})
