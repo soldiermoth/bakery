@@ -11,14 +11,15 @@ import (
 
 // Config holds all the configuration for this service
 type Config struct {
-	Listen   string `envconfig:"HTTP_PORT" default:":8080"`
-	LogLevel string `envconfig:"LOG_LEVEL" default:"debug"`
-	Client   HTTPClient
+	Listen     string `envconfig:"HTTP_PORT" default:":8080"`
+	LogLevel   string `envconfig:"LOG_LEVEL" default:"debug"`
+	OriginHost string `envconfig:"ORIGIN_HOST"`
+	Client     HTTPClient
 }
 
 // HTTPClient will issue requests to the manifest
 type HTTPClient struct {
-	Timeout time.Duration `envconfig:"CLIENT_TIMEOUT" default:"2s"`
+	Timeout time.Duration `envconfig:"CLIENT_TIMEOUT" default:"5s"`
 }
 
 // New creates a new instance of the HTTP Client
