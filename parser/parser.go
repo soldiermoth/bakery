@@ -2,6 +2,7 @@ package parser
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -18,29 +19,21 @@ type AudioLanguage string
 type CaptionLanguage string
 
 const (
-	// Video Types
+	videoHDR10       VideoType = "hdr10"
+	videoDolbyVision VideoType = "dovi"
+	videoHEVC        VideoType = "hevc"
+	videoH264        VideoType = "avc"
 
-	VideoHDR10       VideoType = "hdr10"
-	VideoDolbyVision VideoType = "dovi"
-	VideoHEVC        VideoType = "hevc"
-	VideoH264        VideoType = "avc"
+	audioAAC                AudioType = "aac"
+	audioNoAudioDescription AudioType = "noAd"
 
-	// Audio Types
+	audioLangPTBR AudioLanguage = "pt-br"
+	audioLangES   AudioLanguage = "es"
+	audioLangEN   AudioLanguage = "en"
 
-	AudioAAC                AudioType = "aac"
-	AudioNoAudioDescription AudioType = "noAd"
-
-	// Audio Languages
-
-	AudioPTBR AudioLanguage = "pt-br"
-	AudioES   AudioLanguage = "es"
-	AudioEN   AudioLanguage = "en"
-
-	// Captions Languages
-
-	CaptionPTBR CaptionLanguage = "pt-br"
-	CaptionES   CaptionLanguage = "es"
-	CaptionEN   CaptionLanguage = "en"
+	captionPTBR CaptionLanguage = "pt-br"
+	captionES   CaptionLanguage = "es"
+	captionEN   CaptionLanguage = "en"
 )
 
 // MediaFilters is a struct that carry all the information passed via url
@@ -49,11 +42,14 @@ type MediaFilters struct {
 	Audios           []AudioType       `json:"Audios,omitempty"`
 	AudioLanguages   []AudioLanguage   `json:"AudioLanguages,omitempty"`
 	CaptionLanguages []CaptionLanguage `json:"CaptionLanguages,omitempty"`
-	MaxBitrate       int               `json:"MaxBitrate,omitempty"`
+	MaxBitrate       int               `json:"MinBitrate,omitempty"`
 	MinBitrate       int               `json:"MaxBitrate,omitempty"`
 }
 
-func parse(filters string) (*MediaFilters, error) {
+// Parse will generate a MediaFilters struct with
+// all the filters that needs to be applied to the
+// master manifest.
+func Parse(filters string) (*MediaFilters, error) {
 	mf := new(MediaFilters)
 	parts := strings.Split(filters, "/")
 	re := regexp.MustCompile(`(.*)\((.*)\)`)
@@ -61,19 +57,34 @@ func parse(filters string) (*MediaFilters, error) {
 	for _, part := range parts {
 		subparts := re.FindStringSubmatch(part)
 		// FindStringSubmatch should return a slice with
-		// the full string, the key and values (3 elements)
+		// the full string, the key and filters (3 elements)
 		if len(subparts) != 3 {
 			continue
 		}
 
+		filters := strings.Split(subparts[2], ",")
+
 		switch key := subparts[1]; key {
-		case "video":
-			values := strings.Split(subparts[2], ",")
-			for _, videoType := range values {
+		case "v":
+			for _, videoType := range filters {
 				mf.Videos = append(mf.Videos, VideoType(videoType))
 			}
+		case "a":
+			for _, audioType := range filters {
+				mf.Audios = append(mf.Audios, AudioType(audioType))
+			}
+		case "al":
+			for _, audioLanguage := range filters {
+				mf.AudioLanguages = append(mf.AudioLanguages, AudioLanguage(audioLanguage))
+			}
+		case "c":
+			for _, captionLanguage := range filters {
+				mf.CaptionLanguages = append(mf.CaptionLanguages, CaptionLanguage(captionLanguage))
+			}
+		case "b":
+			mf.MinBitrate, _ = strconv.Atoi(filters[0])
+			mf.MaxBitrate, _ = strconv.Atoi(filters[1])
 		}
-
 	}
 
 	return mf, nil

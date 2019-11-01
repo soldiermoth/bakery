@@ -15,34 +15,43 @@ func TestParseUrl(t *testing.T) {
 	}{
 		{
 			"one video type",
-			"/video(hdr10)/",
+			"/v(hdr10)/",
 			MediaFilters{
-				Videos: []VideoType{VideoHDR10},
+				Videos: []VideoType{videoHDR10},
 			},
 		},
 		{
 			"two video types",
-			"/video(hdr10,hevc)/",
+			"/v(hdr10,hevc)/",
 			MediaFilters{
-				Videos: []VideoType{VideoHDR10, VideoHEVC},
+				Videos: []VideoType{videoHDR10, videoHEVC},
+			},
+		},
+		{
+			"two video types and two audio types",
+			"/v(hdr10,hevc)/a(aac,noAd)/",
+			MediaFilters{
+				Videos: []VideoType{videoHDR10, videoHEVC},
+				Audios: []AudioType{audioAAC, audioNoAudioDescription},
+			},
+		},
+		{
+			"videos, audio, captions and bitrate range",
+			"/v(hdr10,hevc)/a(aac)/al(pt-br,en)/c(en)/b(100,4000)/",
+			MediaFilters{
+				Videos:           []VideoType{videoHDR10, videoHEVC},
+				Audios:           []AudioType{audioAAC},
+				AudioLanguages:   []AudioLanguage{audioLangPTBR, audioLangEN},
+				CaptionLanguages: []CaptionLanguage{captionEN},
+				MaxBitrate:       4000,
+				MinBitrate:       100,
 			},
 		},
 	}
-
-	//tests := map[string]MediaFilters{
-	//filters := "/video(hdr10,hevc)/audio(pt-br,en)/tracks(en)/bitrates(100,4000)/"
-	//expected := MediaFilters{
-	//Videos:           []VideoType{VideoHDR10, VideoHEVC},
-	//AudioLanguages:   []AudioLanguage{AudioPTBR, AudioEN},
-	//CaptionLanguages: []CaptionLanguage{CaptionEN},
-	//MaxBitrate:       4000,
-	//MinBitrate:       100,
-	//}
-
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			output, err := parse(test.input)
+			output, err := Parse(test.input)
 			if err != nil {
 				t.Fatal(err)
 			}
