@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/cbsinteractive/bakery/config"
-	"github.com/cbsinteractive/bakery/parser"
+	parser "github.com/cbsinteractive/bakery/parsers"
 	"github.com/cbsinteractive/go-dash/mpd"
 )
 
@@ -17,15 +17,15 @@ func LoadHandler(c config.Config) http.Handler {
 		defer r.Body.Close()
 		logger := c.GetLogger()
 
-		manifestURL := c.OriginHost + r.URL.Path
-		mediaFilters, err := parser.Parse(manifestURL)
+		mediaFilters, err := parser.URLParse(r.URL.Path)
 		if err != nil {
 			logger.WithError(err).Fatal(w, "failed parsing url")
 		}
 
-		fmt.Printf("Filters: %+v\n", mediaFilters)
+		logger.Infof("Parsed url with ", mediaFilters)
 
 		client := c.Client.New()
+		manifestURL := c.OriginHost + r.URL.Path
 		resp, err := client.Get(manifestURL)
 		if err != nil {
 			logger.WithError(err).Fatal(w, "failed fetching url")
@@ -33,7 +33,6 @@ func LoadHandler(c config.Config) http.Handler {
 
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Body)
-
 		manifest, err := mpd.ReadFromString(buf.String())
 		if err != nil {
 			logger.WithError(err).Fatal(w, "failed to parse mpd")

@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestParseUrl(t *testing.T) {
+func TestURLParseUrl(t *testing.T) {
 
 	tests := []struct {
 		name     string
@@ -47,11 +47,25 @@ func TestParseUrl(t *testing.T) {
 				MinBitrate:       100,
 			},
 		},
+		{
+			"detect protocol hls for urls with .m3u8 extension",
+			"url/here/with/master.m3u8",
+			MediaFilters{
+				Protocol: protocolHLS,
+			},
+		},
+		{
+			"detect protocol dash for urls with .mpd extension",
+			"url/here/with/manifest.mpd",
+			MediaFilters{
+				Protocol: protocolDASH,
+			},
+		},
 	}
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			output, err := Parse(test.input)
+			output, err := URLParse(test.input)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -18,6 +18,9 @@ type AudioLanguage string
 // CaptionLanguage is the audio language we need in a given playlist
 type CaptionLanguage string
 
+// Protocol describe the valid protocols
+type Protocol string
+
 const (
 	videoHDR10       VideoType = "hdr10"
 	videoDolbyVision VideoType = "dovi"
@@ -34,6 +37,9 @@ const (
 	captionPTBR CaptionLanguage = "pt-br"
 	captionES   CaptionLanguage = "es"
 	captionEN   CaptionLanguage = "en"
+
+	protocolHLS  Protocol = "hls"
+	protocolDASH Protocol = "dash"
 )
 
 // MediaFilters is a struct that carry all the information passed via url
@@ -44,15 +50,22 @@ type MediaFilters struct {
 	CaptionLanguages []CaptionLanguage `json:"CaptionLanguages,omitempty"`
 	MaxBitrate       int               `json:"MinBitrate,omitempty"`
 	MinBitrate       int               `json:"MaxBitrate,omitempty"`
+	Protocol         Protocol          `json:"protocol"`
 }
 
-// Parse will generate a MediaFilters struct with
+// URLParse will generate a MediaFilters struct with
 // all the filters that needs to be applied to the
 // master manifest.
-func Parse(filters string) (*MediaFilters, error) {
+func URLParse(urlpath string) (*MediaFilters, error) {
 	mf := new(MediaFilters)
-	parts := strings.Split(filters, "/")
+	parts := strings.Split(urlpath, "/")
 	re := regexp.MustCompile(`(.*)\((.*)\)`)
+
+	if strings.Contains(urlpath, ".m3u8") {
+		mf.Protocol = protocolHLS
+	} else if strings.Contains(urlpath, ".mpd") {
+		mf.Protocol = protocolDASH
+	}
 
 	for _, part := range parts {
 		subparts := re.FindStringSubmatch(part)
