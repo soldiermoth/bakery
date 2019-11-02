@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/cbsinteractive/bakery/config"
-	parser "github.com/cbsinteractive/bakery/parsers"
-	"github.com/cbsinteractive/go-dash/mpd"
+	"github.com/cbsinteractive/bakery/filters"
+	"github.com/cbsinteractive/bakery/parsers"
 )
 
 // LoadHandler loads the handler for all the requests
@@ -17,7 +17,7 @@ func LoadHandler(c config.Config) http.Handler {
 		defer r.Body.Close()
 		logger := c.GetLogger()
 
-		mediaFilters, err := parser.URLParse(r.URL.Path)
+		mediaFilters, err := parsers.URLParse(r.URL.Path)
 		if err != nil {
 			logger.WithError(err).Fatal(w, "failed parsing url")
 		}
@@ -33,16 +33,19 @@ func LoadHandler(c config.Config) http.Handler {
 
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Body)
-		manifest, err := mpd.ReadFromString(buf.String())
-		if err != nil {
-			logger.WithError(err).Fatal(w, "failed to parse mpd")
+
+		var f filters.Filter
+		if mediaFilters.Protocol == parsers.ProtocolHLS {
+			f = filters.NewHLSFilter(buf.String(), c)
+		} else if mediaFilters.Protocol == parsers.ProtocolDASH {
+			f = filters.NewDASHFilter(buf.String(), c)
 		}
 
-		newManifest, err := manifest.WriteToString()
+		filteredManifest, err := f.FilterManifest(mediaFilters)
 		if err != nil {
-			logger.WithError(err).Fatal(w, "failed to generate mpd")
+			logger.WithError(err).Fatal(w, "failed to filter")
 		}
 
-		fmt.Fprintf(w, newManifest)
+		fmt.Fprintf(w, filteredManifest)
 	})
 }

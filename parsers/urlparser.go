@@ -1,4 +1,4 @@
-package parser
+package parsers
 
 import (
 	"regexp"
@@ -38,8 +38,8 @@ const (
 	captionES   CaptionLanguage = "es"
 	captionEN   CaptionLanguage = "en"
 
-	protocolHLS  Protocol = "hls"
-	protocolDASH Protocol = "dash"
+	ProtocolHLS  Protocol = "hls"
+	ProtocolDASH Protocol = "dash"
 )
 
 // MediaFilters is a struct that carry all the information passed via url
@@ -62,9 +62,9 @@ func URLParse(urlpath string) (*MediaFilters, error) {
 	re := regexp.MustCompile(`(.*)\((.*)\)`)
 
 	if strings.Contains(urlpath, ".m3u8") {
-		mf.Protocol = protocolHLS
+		mf.Protocol = ProtocolHLS
 	} else if strings.Contains(urlpath, ".mpd") {
-		mf.Protocol = protocolDASH
+		mf.Protocol = ProtocolDASH
 	}
 
 	for _, part := range parts {
