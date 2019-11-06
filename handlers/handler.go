@@ -15,20 +15,19 @@ func LoadHandler(c config.Config) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
-		logger := c.GetLogger()
 
 		mediaFilters, err := parsers.URLParse(r.URL.Path)
 		if err != nil {
-			logger.WithError(err).Fatal(w, "failed parsing url")
+			httpError(c, w, err, "failed parsing url", http.StatusInternalServerError)
+			return
 		}
-
-		logger.Infof("Parsed url with ", mediaFilters)
 
 		client := c.Client.New()
 		manifestURL := c.OriginHost + r.URL.Path
 		resp, err := client.Get(manifestURL)
 		if err != nil {
-			logger.WithError(err).Fatal(w, "failed fetching url")
+			httpError(c, w, err, "failed fetching origin url", http.StatusInternalServerError)
+			return
 		}
 
 		buf := new(bytes.Buffer)
@@ -43,9 +42,16 @@ func LoadHandler(c config.Config) http.Handler {
 
 		filteredManifest, err := f.FilterManifest(mediaFilters)
 		if err != nil {
-			logger.WithError(err).Fatal(w, "failed to filter")
+			httpError(c, w, err, "failed to filter manifest", http.StatusInternalServerError)
+			return
 		}
 
 		fmt.Fprintf(w, filteredManifest)
 	})
+}
+
+func httpError(c config.Config, w http.ResponseWriter, err error, message string, code int) {
+	logger := c.GetLogger()
+	logger.WithError(err).Infof(message)
+	http.Error(w, message+": "+err.Error(), code)
 }
