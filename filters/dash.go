@@ -9,13 +9,15 @@ import (
 // DASHFilter implements the Filter interface for DASH
 // manifests
 type DASHFilter struct {
+	manifestURL     string
 	manifestContent string
 	config          config.Config
 }
 
 // NewDASHFilter is the DASH filter constructor
-func NewDASHFilter(manifestContent string, c config.Config) *DASHFilter {
+func NewDASHFilter(manifestURL, manifestContent string, c config.Config) *DASHFilter {
 	return &DASHFilter{
+		manifestURL:     manifestURL,
 		manifestContent: manifestContent,
 		config:          c,
 	}

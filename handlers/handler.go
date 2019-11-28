@@ -38,9 +38,11 @@ func LoadHandler(c config.Config) http.Handler {
 
 		var f filters.Filter
 		if mediaFilters.Protocol == parsers.ProtocolHLS {
-			f = filters.NewHLSFilter(buf.String(), c)
+			f = filters.NewHLSFilter(manifestURL, buf.String(), c)
+			w.Header().Set("Content-Type", "application/x-mpegURL")
 		} else if mediaFilters.Protocol == parsers.ProtocolDASH {
-			f = filters.NewDASHFilter(buf.String(), c)
+			f = filters.NewDASHFilter(manifestURL, buf.String(), c)
+			w.Header().Set("Content-Type", "application/dash+xml")
 		}
 
 		filteredManifest, err := f.FilterManifest(mediaFilters)
