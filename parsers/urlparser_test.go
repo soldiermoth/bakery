@@ -10,9 +10,10 @@ import (
 func TestURLParseUrl(t *testing.T) {
 
 	tests := []struct {
-		name     string
-		input    string
-		expected MediaFilters
+		name                 string
+		input                string
+		expectedFilters      MediaFilters
+		expectedManifestPath string
 	}{
 		{
 			"one video type",
@@ -22,6 +23,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
+			"",
 		},
 		{
 			"two video types",
@@ -31,6 +33,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
+			"",
 		},
 		{
 			"two video types and two audio types",
@@ -41,6 +44,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
+			"",
 		},
 		{
 			"videos, audio, captions and bitrate range",
@@ -53,6 +57,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate:       4000,
 				MinBitrate:       100,
 			},
+			"",
 		},
 		{
 			"bitrate range with minimum bitrate only",
@@ -61,6 +66,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 100,
 			},
+			"",
 		},
 		{
 			"bitrate range with maximum bitrate only",
@@ -69,6 +75,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: 3000,
 				MinBitrate: 0,
 			},
+			"",
 		},
 		{
 			"detect protocol hls for urls with .m3u8 extension",
@@ -78,6 +85,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
+			"url/here/with/master.m3u8",
 		},
 		{
 			"detect protocol dash for urls with .mpd extension",
@@ -87,12 +95,13 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
+			"url/here/with/manifest.mpd",
 		},
 	}
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			output, err := URLParse(test.input)
+			masterManifestPath, output, err := URLParse(test.input)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -102,13 +111,17 @@ func TestURLParseUrl(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			jsonExpected, err := json.Marshal(test.expected)
+			jsonExpected, err := json.Marshal(test.expectedFilters)
 			if err != nil {
 				t.Fatal(err)
 			}
 
+			if test.expectedManifestPath != masterManifestPath {
+				t.Errorf("wrong master manifest generated.\nwant %#v\ngot %#v", test.expectedManifestPath, masterManifestPath)
+			}
+
 			if !reflect.DeepEqual(jsonOutput, jsonExpected) {
-				t.Errorf("wrong struct generated.\nwant %#v\ngot %#v", test.expected, output)
+				t.Errorf("wrong struct generated.\nwant %#v\ngot %#v", test.expectedFilters, output)
 			}
 		})
 	}

@@ -2,6 +2,7 @@ package parsers
 
 import (
 	"math"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -58,11 +59,13 @@ type MediaFilters struct {
 
 // URLParse will generate a MediaFilters struct with
 // all the filters that needs to be applied to the
-// master manifest.
-func URLParse(urlpath string) (*MediaFilters, error) {
+// master manifest. It will also return the master manifest
+// url without the filters.
+func URLParse(urlpath string) (string, *MediaFilters, error) {
 	mf := new(MediaFilters)
 	parts := strings.Split(urlpath, "/")
 	re := regexp.MustCompile(`(.*)\((.*)\)`)
+	masterManifestPath := ""
 
 	if strings.Contains(urlpath, ".m3u8") {
 		mf.Protocol = ProtocolHLS
@@ -75,10 +78,13 @@ func URLParse(urlpath string) (*MediaFilters, error) {
 	mf.MaxBitrate = math.MaxInt32
 
 	for _, part := range parts {
-		subparts := re.FindStringSubmatch(part)
 		// FindStringSubmatch should return a slice with
-		// the full string, the key and filters (3 elements)
+		// the full string, the key and filters (3 elements).
+		// If it doesn't match, it means that the path is part
+		// of the official manifest path so we concatenate to it.
+		subparts := re.FindStringSubmatch(part)
 		if len(subparts) != 3 {
+			masterManifestPath = path.Join(masterManifestPath, part)
 			continue
 		}
 
@@ -112,5 +118,5 @@ func URLParse(urlpath string) (*MediaFilters, error) {
 		}
 	}
 
-	return mf, nil
+	return masterManifestPath, mf, nil
 }
