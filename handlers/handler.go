@@ -14,6 +14,9 @@ import (
 func LoadHandler(c config.Config) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.RequestURI == "/favicon.ico" {
+			return
+		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		defer r.Body.Close()
 		logger := c.GetLogger()
