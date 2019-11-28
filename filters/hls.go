@@ -1,9 +1,12 @@
 package filters
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/cbsinteractive/bakery/config"
 	"github.com/cbsinteractive/bakery/parsers"
-	"github.com/quangngotan95/go-m3u8/m3u8"
+	"github.com/grafov/m3u8"
 )
 
 // HLSFilter implements the Filter interface for HLS
@@ -24,10 +27,12 @@ func NewHLSFilter(manifestContent string, c config.Config) *HLSFilter {
 // FilterManifest will be responsible for filtering the manifest
 // according  to the MediaFilters
 func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error) {
-	manifest, err := m3u8.ReadString(h.manifestContent)
+	manifest, manifestType, err := m3u8.DecodeFrom(strings.NewReader(h.manifestContent), true)
 	if err != nil {
 		return "", err
 	}
-
+	if manifestType != m3u8.MASTER {
+		return "", errors.New("manifest type is wrong")
+	}
 	return manifest.String(), nil
 }
