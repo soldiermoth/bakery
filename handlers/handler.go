@@ -16,14 +16,14 @@ func LoadHandler(c config.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
-		mediaFilters, err := parsers.URLParse(r.URL.Path)
+		masterManifestPath, mediaFilters, err := parsers.URLParse(r.URL.Path)
 		if err != nil {
 			httpError(c, w, err, "failed parsing url", http.StatusInternalServerError)
 			return
 		}
 
 		client := c.Client.New()
-		manifestURL := c.OriginHost + r.URL.Path
+		manifestURL := c.OriginHost + masterManifestPath
 		resp, err := client.Get(manifestURL)
 		if err != nil {
 			httpError(c, w, err, "failed fetching origin url", http.StatusInternalServerError)
