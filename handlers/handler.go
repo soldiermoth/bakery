@@ -14,7 +14,10 @@ import (
 func LoadHandler(c config.Config) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		defer r.Body.Close()
+		logger := c.GetLogger()
+		logger.Infof("%s %s %s", r.Method, r.RequestURI, r.RemoteAddr)
 
 		masterManifestPath, mediaFilters, err := parsers.URLParse(r.URL.Path)
 		if err != nil {
