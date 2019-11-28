@@ -70,6 +70,10 @@ func URLParse(urlpath string) (*MediaFilters, error) {
 		mf.Protocol = ProtocolDASH
 	}
 
+	// set bitrate defaults
+	mf.MinBitrate = 0
+	mf.MaxBitrate = math.MaxInt32
+
 	for _, part := range parts {
 		subparts := re.FindStringSubmatch(part)
 		// FindStringSubmatch should return a slice with
@@ -100,14 +104,10 @@ func URLParse(urlpath string) (*MediaFilters, error) {
 		case "b":
 			if filters[0] != "" {
 				mf.MinBitrate, _ = strconv.Atoi(filters[0])
-			} else {
-				mf.MinBitrate = 0
 			}
 
 			if filters[1] != "" {
 				mf.MaxBitrate, _ = strconv.Atoi(filters[1])
-			} else {
-				mf.MaxBitrate = math.MaxInt32
 			}
 		}
 	}

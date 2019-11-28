@@ -18,22 +18,28 @@ func TestURLParseUrl(t *testing.T) {
 			"one video type",
 			"/v(hdr10)/",
 			MediaFilters{
-				Videos: []VideoType{videoHDR10},
+				Videos:     []VideoType{videoHDR10},
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 0,
 			},
 		},
 		{
 			"two video types",
 			"/v(hdr10,hevc)/",
 			MediaFilters{
-				Videos: []VideoType{videoHDR10, videoHEVC},
+				Videos:     []VideoType{videoHDR10, videoHEVC},
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 0,
 			},
 		},
 		{
 			"two video types and two audio types",
 			"/v(hdr10,hevc)/a(aac,noAd)/",
 			MediaFilters{
-				Videos: []VideoType{videoHDR10, videoHEVC},
-				Audios: []AudioType{audioAAC, audioNoAudioDescription},
+				Videos:     []VideoType{videoHDR10, videoHEVC},
+				Audios:     []AudioType{audioAAC, audioNoAudioDescription},
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 0,
 			},
 		},
 		{
@@ -68,14 +74,18 @@ func TestURLParseUrl(t *testing.T) {
 			"detect protocol hls for urls with .m3u8 extension",
 			"url/here/with/master.m3u8",
 			MediaFilters{
-				Protocol: ProtocolHLS,
+				Protocol:   ProtocolHLS,
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 0,
 			},
 		},
 		{
 			"detect protocol dash for urls with .mpd extension",
 			"url/here/with/manifest.mpd",
 			MediaFilters{
-				Protocol: ProtocolDASH,
+				Protocol:   ProtocolDASH,
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 0,
 			},
 		},
 	}
