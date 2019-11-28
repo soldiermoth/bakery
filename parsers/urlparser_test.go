@@ -23,7 +23,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
-			"",
+			"/",
 		},
 		{
 			"two video types",
@@ -33,7 +33,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
-			"",
+			"/",
 		},
 		{
 			"two video types and two audio types",
@@ -44,7 +44,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
-			"",
+			"/",
 		},
 		{
 			"videos, audio, captions and bitrate range",
@@ -57,7 +57,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate:       4000,
 				MinBitrate:       100,
 			},
-			"",
+			"/",
 		},
 		{
 			"bitrate range with minimum bitrate only",
@@ -66,7 +66,7 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 100,
 			},
-			"",
+			"/",
 		},
 		{
 			"bitrate range with maximum bitrate only",
@@ -75,27 +75,27 @@ func TestURLParseUrl(t *testing.T) {
 				MaxBitrate: 3000,
 				MinBitrate: 0,
 			},
-			"",
+			"/",
 		},
 		{
 			"detect protocol hls for urls with .m3u8 extension",
-			"url/here/with/master.m3u8",
+			"/path/here/with/master.m3u8",
 			MediaFilters{
 				Protocol:   ProtocolHLS,
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
-			"url/here/with/master.m3u8",
+			"/path/here/with/master.m3u8",
 		},
 		{
 			"detect protocol dash for urls with .mpd extension",
-			"url/here/with/manifest.mpd",
+			"/path/here/with/manifest.mpd",
 			MediaFilters{
 				Protocol:   ProtocolDASH,
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
 			},
-			"url/here/with/manifest.mpd",
+			"/path/here/with/manifest.mpd",
 		},
 	}
 	for _, test := range tests {

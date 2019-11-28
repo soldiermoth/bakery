@@ -65,7 +65,7 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 	mf := new(MediaFilters)
 	parts := strings.Split(urlpath, "/")
 	re := regexp.MustCompile(`(.*)\((.*)\)`)
-	masterManifestPath := ""
+	masterManifestPath := "/"
 
 	if strings.Contains(urlpath, ".m3u8") {
 		mf.Protocol = ProtocolHLS
