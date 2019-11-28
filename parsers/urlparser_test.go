@@ -2,6 +2,7 @@ package parsers
 
 import (
 	"encoding/json"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -45,6 +46,22 @@ func TestURLParseUrl(t *testing.T) {
 				CaptionLanguages: []CaptionLanguage{captionEN},
 				MaxBitrate:       4000,
 				MinBitrate:       100,
+			},
+		},
+		{
+			"bitrate range with minimum bitrate only",
+			"/b(100,)/",
+			MediaFilters{
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 100,
+			},
+		},
+		{
+			"bitrate range with maximum bitrate only",
+			"/b(,3000)/",
+			MediaFilters{
+				MaxBitrate: 3000,
+				MinBitrate: 0,
 			},
 		},
 		{

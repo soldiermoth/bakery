@@ -1,6 +1,7 @@
 package parsers
 
 import (
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -38,7 +39,9 @@ const (
 	captionES   CaptionLanguage = "es"
 	captionEN   CaptionLanguage = "en"
 
-	ProtocolHLS  Protocol = "hls"
+	// ProtocolHLS for manifest in hls
+	ProtocolHLS Protocol = "hls"
+	// ProtocolDASH for manifests in dash
 	ProtocolDASH Protocol = "dash"
 )
 
@@ -95,8 +98,17 @@ func URLParse(urlpath string) (*MediaFilters, error) {
 				mf.CaptionLanguages = append(mf.CaptionLanguages, CaptionLanguage(captionLanguage))
 			}
 		case "b":
-			mf.MinBitrate, _ = strconv.Atoi(filters[0])
-			mf.MaxBitrate, _ = strconv.Atoi(filters[1])
+			if filters[0] != "" {
+				mf.MinBitrate, _ = strconv.Atoi(filters[0])
+			} else {
+				mf.MinBitrate = 0
+			}
+
+			if filters[1] != "" {
+				mf.MaxBitrate, _ = strconv.Atoi(filters[1])
+			} else {
+				mf.MaxBitrate = math.MaxInt32
+			}
 		}
 	}
 
