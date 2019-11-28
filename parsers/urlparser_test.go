@@ -51,14 +51,14 @@ func TestURLParseUrl(t *testing.T) {
 			"detect protocol hls for urls with .m3u8 extension",
 			"url/here/with/master.m3u8",
 			MediaFilters{
-				Protocol: protocolHLS,
+				Protocol: ProtocolHLS,
 			},
 		},
 		{
 			"detect protocol dash for urls with .mpd extension",
 			"url/here/with/manifest.mpd",
 			MediaFilters{
-				Protocol: protocolDASH,
+				Protocol: ProtocolDASH,
 			},
 		},
 	}
