@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net"
 	"net/http"
 	"os"
 
@@ -26,15 +25,8 @@ func main() {
 	if isLambda {
 		algnhsa.ListenAndServe(handler, nil)
 	} else {
-		listener, err := net.Listen("tcp", c.Listen)
-		if err != nil {
-			logger.WithError(err).Fatal("failed to initialize listener")
-		}
-
-		logger.Infof("Starting Bakery on %s", listener.Addr())
-		err = http.Serve(listener, handler)
-		if err != nil {
-			logger.WithError(err).Fatal("failed to initialize server")
-		}
+		logger.Infof("Starting Bakery on %s", c.Listen)
+		http.Handle("/", handler)
+		http.ListenAndServe(c.Listen, nil)
 	}
 }
