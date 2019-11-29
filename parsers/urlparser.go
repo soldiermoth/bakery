@@ -32,12 +32,12 @@ const (
 	audioAAC                AudioType = "aac"
 	audioNoAudioDescription AudioType = "noAd"
 
-	audioLangPTBR AudioLanguage = "pt-br"
-	audioLangES   AudioLanguage = "es"
+	audioLangPTBR AudioLanguage = "pt-BR"
+	audioLangES   AudioLanguage = "es-MX"
 	audioLangEN   AudioLanguage = "en"
 
-	captionPTBR CaptionLanguage = "pt-br"
-	captionES   CaptionLanguage = "es"
+	captionPTBR CaptionLanguage = "es-MX"
+	captionES   CaptionLanguage = "es-MX"
 	captionEN   CaptionLanguage = "en"
 
 	// ProtocolHLS for manifest in hls

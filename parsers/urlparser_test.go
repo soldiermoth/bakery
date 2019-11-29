@@ -48,7 +48,7 @@ func TestURLParseUrl(t *testing.T) {
 		},
 		{
 			"videos, audio, captions and bitrate range",
-			"/v(hdr10,hevc)/a(aac)/al(pt-br,en)/c(en)/b(100,4000)/",
+			"/v(hdr10,hevc)/a(aac)/al(pt-BR,en)/c(en)/b(100,4000)/",
 			MediaFilters{
 				Videos:           []VideoType{videoHDR10, videoHEVC},
 				Audios:           []AudioType{audioAAC},
