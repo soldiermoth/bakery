@@ -43,15 +43,23 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 	filteredManifest := m3u8.NewMasterPlaylist()
 
 	for _, v := range manifest.Variants {
-		// transform media manifests and alternatives (EXT-X-MEDIA)
-		// into absolute urls
 		absoluteURL, _ := filepath.Split(h.manifestURL)
-		if len(v.VariantParams.Alternatives) > 0 {
-			for _, a := range v.VariantParams.Alternatives {
-				a.URI = absoluteURL + a.URI
-			}
+		normalizedVariant := h.normalizeVariant(v, absoluteURL)
+		if h.validateVariant(filters, normalizedVariant) {
+			filteredManifest.Append(normalizedVariant.URI, normalizedVariant.Chunklist, normalizedVariant.VariantParams)
 		}
-		filteredManifest.Append(absoluteURL+v.URI, v.Chunklist, v.VariantParams)
 	}
 	return filteredManifest.String(), nil
+}
+
+func (h *HLSFilter) validateVariant(filters *parsers.MediaFilters, v *m3u8.Variant) bool {
+	return true
+}
+
+func (h *HLSFilter) normalizeVariant(v *m3u8.Variant, absoluteURL string) *m3u8.Variant {
+	for _, a := range v.VariantParams.Alternatives {
+		a.URI = absoluteURL + a.URI
+	}
+	v.URI = absoluteURL + v.URI
+	return v
 }
