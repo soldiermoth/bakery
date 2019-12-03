@@ -36,7 +36,7 @@ const (
 	audioLangES   AudioLanguage = "es-MX"
 	audioLangEN   AudioLanguage = "en"
 
-	captionPTBR CaptionLanguage = "es-MX"
+	captionPTBR CaptionLanguage = "pt-BR"
 	captionES   CaptionLanguage = "es-MX"
 	captionEN   CaptionLanguage = "en"
 
