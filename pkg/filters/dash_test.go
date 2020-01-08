@@ -29,8 +29,6 @@ func TestDASHFilter_FilterManifest_baseURL(t *testing.T) {
 `, baseURL)
 	}
 
-	_ = manifestWithAbsoluteBaseURL
-
 	tests := []struct {
 		name                  string
 		manifestURL           string
