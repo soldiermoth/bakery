@@ -12,7 +12,6 @@ import (
 
 // LoadHandler loads the handler for all the requests
 func LoadHandler(c config.Config) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.RequestURI == "/favicon.ico" {
 			return
@@ -39,13 +38,14 @@ func LoadHandler(c config.Config) http.Handler {
 		// create filter associated to the protocol and set
 		// response headers accordingly
 		var f filters.Filter
-		if mediaFilters.Protocol == parsers.ProtocolHLS {
+		switch mediaFilters.Protocol {
+		case parsers.ProtocolHLS:
 			f = filters.NewHLSFilter(manifestURL, manifestContent, c)
 			w.Header().Set("Content-Type", "application/x-mpegURL")
-		} else if mediaFilters.Protocol == parsers.ProtocolDASH {
+		case parsers.ProtocolDASH:
 			f = filters.NewDASHFilter(manifestURL, manifestContent, c)
 			w.Header().Set("Content-Type", "application/dash+xml")
-		} else {
+		default:
 			err := fmt.Errorf("unsupported protocol %q", mediaFilters.Protocol)
 			httpError(c, w, err, "failed to select filter", http.StatusBadRequest)
 			return
@@ -59,7 +59,7 @@ func LoadHandler(c config.Config) http.Handler {
 		}
 
 		// write the filtered manifest to the response
-		fmt.Fprintf(w, filteredManifest)
+		fmt.Fprint(w, filteredManifest)
 	})
 }
 

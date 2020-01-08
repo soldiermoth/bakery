@@ -55,6 +55,7 @@ func (d *DASHFilter) filterCaptionTypes(filters *parsers.MediaFilters, manifest 
 
 			if *as.ContentType == adaptationSetTypeText {
 				var filteredReps []*mpd.Representation
+
 				for _, r := range as.Representations {
 					if r.Codecs == nil {
 						filteredReps = append(filteredReps, r)
