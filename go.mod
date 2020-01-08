@@ -6,6 +6,7 @@ go 1.13
 
 require (
 	github.com/akrylysov/algnhsa v0.12.1
+	github.com/google/go-cmp v0.4.0
 	github.com/grafov/m3u8 v0.11.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/sirupsen/logrus v1.4.2

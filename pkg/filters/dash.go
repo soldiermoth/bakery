@@ -6,6 +6,8 @@ import (
 	"github.com/zencoder/go-dash/mpd"
 )
 
+const adaptationSetTypeText = "text"
+
 // DASHFilter implements the Filter interface for DASH
 // manifests
 type DASHFilter struct {
@@ -51,7 +53,7 @@ func (d *DASHFilter) filterCaptionTypes(filters *parsers.MediaFilters, manifest 
 				continue
 			}
 
-			if *as.ContentType == "text" {
+			if *as.ContentType == adaptationSetTypeText {
 				var filteredReps []*mpd.Representation
 				for _, r := range as.Representations {
 					if r.Codecs == nil {
