@@ -20,6 +20,9 @@ type AudioLanguage string
 // CaptionLanguage is the audio language we need in a given playlist
 type CaptionLanguage string
 
+// CaptionType is an allowed caption format for the stream
+type CaptionType string
+
 // Protocol describe the valid protocols
 type Protocol string
 
@@ -52,6 +55,7 @@ type MediaFilters struct {
 	Audios           []AudioType       `json:"Audios,omitempty"`
 	AudioLanguages   []AudioLanguage   `json:"AudioLanguages,omitempty"`
 	CaptionLanguages []CaptionLanguage `json:"CaptionLanguages,omitempty"`
+	CaptionTypes     []CaptionType     `json:"CaptionTypes,omitempty"`
 	MaxBitrate       int               `json:"MinBitrate,omitempty"`
 	MinBitrate       int               `json:"MaxBitrate,omitempty"`
 	Protocol         Protocol          `json:"protocol"`
@@ -106,6 +110,14 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 		case "c":
 			for _, captionLanguage := range filters {
 				mf.CaptionLanguages = append(mf.CaptionLanguages, CaptionLanguage(captionLanguage))
+			}
+		case "ct":
+			if mf.CaptionTypes == nil {
+				mf.CaptionTypes = []CaptionType{}
+			}
+
+			for _, captionType := range filters {
+				mf.CaptionTypes = append(mf.CaptionTypes, CaptionType(captionType))
 			}
 		case "b":
 			if filters[0] != "" {

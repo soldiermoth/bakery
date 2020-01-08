@@ -2,25 +2,22 @@
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
+GORUN=$(GOCMD) run
 GOTEST=$(GOCMD) test
-GOGET=$(GOCMD) get
 BINARY_NAME=bakery
-BINARY_UNIX=$(BINARY_NAME)_unix
+WEBSERVER=./cmd/http
 
 all: test build
 build: 
-				$(GOBUILD) -o $(BINARY_NAME) -v
+				$(GOBUILD) -o $(BINARY_NAME) -v $(WEBSERVER)
 build_lambda:
-				GOOS=linux $(GOBUILD) -o main -v
+				GOOS=linux $(GOBUILD) -o main -v $(WEBSERVER)
 				zip function.zip main
 test: 
-				$(GOTEST) -v ./...
+				$(GOTEST) -v -race -count=1 ./...
 clean: 
-				$(GOCLEAN)
+				$(GOCLEAN) ./...
 				rm -f $(BINARY_NAME)
-				rm -f $(BINARY_UNIX)
 run:
-				$(GOGET)
-				$(GOBUILD) -o $(BINARY_NAME)
-				./$(BINARY_NAME)
+				$(GORUN) $(WEBSERVER)
 

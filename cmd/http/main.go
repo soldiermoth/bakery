@@ -1,19 +1,19 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
-	"github.com/cbsinteractive/bakery/config"
-	"github.com/cbsinteractive/bakery/handlers"
-
 	"github.com/akrylysov/algnhsa"
+	"github.com/cbsinteractive/bakery/pkg/config"
+	"github.com/cbsinteractive/bakery/pkg/handlers"
 )
 
 func main() {
 	c, err := config.LoadConfig()
 	if err != nil {
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 
 	logger := c.GetLogger()
@@ -27,6 +27,8 @@ func main() {
 	} else {
 		logger.Infof("Starting Bakery on %s", c.Listen)
 		http.Handle("/", handler)
-		http.ListenAndServe(c.Listen, nil)
+		if err := http.ListenAndServe(c.Listen, nil); err != nil {
+			log.Fatal(err)
+		}
 	}
 }

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cbsinteractive/bakery/config"
-	"github.com/cbsinteractive/bakery/parsers"
+	"github.com/cbsinteractive/bakery/pkg/config"
+	"github.com/cbsinteractive/bakery/pkg/parsers"
 	"github.com/grafov/m3u8"
 )
 
@@ -34,6 +34,7 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 	if err != nil {
 		return "", err
 	}
+
 	if manifestType != m3u8.MASTER {
 		return "", errors.New("manifest type is wrong")
 	}
@@ -44,11 +45,13 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 
 	for _, v := range manifest.Variants {
 		absoluteURL, _ := filepath.Split(h.manifestURL)
+
 		normalizedVariant := h.normalizeVariant(v, absoluteURL)
 		if h.validateVariant(filters, normalizedVariant) {
 			filteredManifest.Append(normalizedVariant.URI, normalizedVariant.Chunklist, normalizedVariant.VariantParams)
 		}
 	}
+
 	return filteredManifest.String(), nil
 }
 
@@ -57,6 +60,7 @@ func (h *HLSFilter) validateVariant(filters *parsers.MediaFilters, v *m3u8.Varia
 	if bw > filters.MaxBitrate || bw < filters.MinBitrate {
 		return false
 	}
+
 	return true
 }
 
@@ -64,6 +68,8 @@ func (h *HLSFilter) normalizeVariant(v *m3u8.Variant, absoluteURL string) *m3u8.
 	for _, a := range v.VariantParams.Alternatives {
 		a.URI = absoluteURL + a.URI
 	}
+
 	v.URI = absoluteURL + v.URI
+
 	return v
 }

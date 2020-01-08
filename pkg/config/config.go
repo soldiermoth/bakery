@@ -28,6 +28,7 @@ func (h HTTPClient) New() *http.Client {
 	client := &http.Client{
 		Timeout: h.Timeout,
 	}
+
 	return client
 }
 
@@ -35,6 +36,7 @@ func (h HTTPClient) New() *http.Client {
 func LoadConfig() (Config, error) {
 	var c Config
 	err := envconfig.Process("bakery", &c)
+
 	return c, err
 }
 
@@ -48,5 +50,6 @@ func (c Config) GetLogger() *logrus.Logger {
 	logger := logrus.New()
 	logger.Out = os.Stdout
 	logger.Level = level
+
 	return logger
 }

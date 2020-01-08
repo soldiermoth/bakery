@@ -16,3 +16,12 @@ bakery
 baker
 function.zip
 main
+
+# JetBrains IDE
+.idea/
+
+# MacOS directory index
+.DS_Store
+
+# local file for setting envvars '. ./set_vars.sh'
+set_vars.sh

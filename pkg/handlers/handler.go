@@ -1,24 +1,22 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
-	"github.com/cbsinteractive/bakery/config"
-	"github.com/cbsinteractive/bakery/filters"
-	"github.com/cbsinteractive/bakery/parsers"
+	"github.com/cbsinteractive/bakery/pkg/config"
+	"github.com/cbsinteractive/bakery/pkg/filters"
+	"github.com/cbsinteractive/bakery/pkg/parsers"
 )
 
 // LoadHandler loads the handler for all the requests
 func LoadHandler(c config.Config) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.RequestURI == "/favicon.ico" {
 			return
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		defer r.Body.Close()
 		logger := c.GetLogger()
 		logger.Infof("%s %s %s", r.Method, r.RequestURI, r.RemoteAddr)
 
@@ -40,12 +38,17 @@ func LoadHandler(c config.Config) http.Handler {
 		// create filter associated to the protocol and set
 		// response headers accordingly
 		var f filters.Filter
-		if mediaFilters.Protocol == parsers.ProtocolHLS {
+		switch mediaFilters.Protocol {
+		case parsers.ProtocolHLS:
 			f = filters.NewHLSFilter(manifestURL, manifestContent, c)
 			w.Header().Set("Content-Type", "application/x-mpegURL")
-		} else if mediaFilters.Protocol == parsers.ProtocolDASH {
+		case parsers.ProtocolDASH:
 			f = filters.NewDASHFilter(manifestURL, manifestContent, c)
 			w.Header().Set("Content-Type", "application/dash+xml")
+		default:
+			err := fmt.Errorf("unsupported protocol %q", mediaFilters.Protocol)
+			httpError(c, w, err, "failed to select filter", http.StatusBadRequest)
+			return
 		}
 
 		// apply the filters to the origin manifest
@@ -56,20 +59,23 @@ func LoadHandler(c config.Config) http.Handler {
 		}
 
 		// write the filtered manifest to the response
-		fmt.Fprintf(w, filteredManifest)
+		fmt.Fprint(w, filteredManifest)
 	})
 }
 
 func fetchManifest(c config.Config, manifestURL string) (string, error) {
-	client := c.Client.New()
-	resp, err := client.Get(manifestURL)
+	resp, err := c.Client.New().Get(manifestURL)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("fetching manifest: %w", err)
+	}
+	defer resp.Body.Close()
+
+	contents, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading manifest response body: %w", err)
 	}
 
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
-	return buf.String(), nil
+	return string(contents), nil
 }
 
 func httpError(c config.Config, w http.ResponseWriter, err error, message string, code int) {
