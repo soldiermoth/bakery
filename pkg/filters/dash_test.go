@@ -1,6 +1,7 @@
 package filters
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/cbsinteractive/bakery/pkg/config"
@@ -8,9 +9,83 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestDASHFilter_FilterManifest_baseURL(t *testing.T) {
+	manifestWithoutBaseURL := `<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+</MPD>
+`
+
+	manifestWithAbsoluteBaseURL := `<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://some.absolute/base/url/</BaseURL>
+</MPD>
+`
+
+	manifestWithBaseURL := func(baseURL string) string {
+		return fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>%s</BaseURL>
+</MPD>
+`, baseURL)
+	}
+
+	_ = manifestWithAbsoluteBaseURL
+
+	tests := []struct {
+		name                  string
+		manifestURL           string
+		manifestContent       string
+		expectManifestContent string
+		expectErr             bool
+	}{
+		{
+			name: "when no baseURL is set, the correct absolute baseURL is added relative to the " +
+				"manifest URL",
+			manifestURL:           "http://some.url/to/the/manifest.mpd",
+			manifestContent:       manifestWithoutBaseURL,
+			expectManifestContent: manifestWithBaseURL("http://some.url/to/the/"),
+		},
+		{
+			name:                  "when an absolute baseURL is set, the manifest is unchanged",
+			manifestURL:           "http://some.url/to/the/manifest.mpd",
+			manifestContent:       manifestWithAbsoluteBaseURL,
+			expectManifestContent: manifestWithAbsoluteBaseURL,
+		},
+		{
+			name: "when a relative baseURL is set, the correct absolute baseURL is added relative " +
+				"to the manifest URL and the provided relative baseURL",
+			manifestURL:           "http://some.url/to/the/manifest.mpd",
+			manifestContent:       manifestWithBaseURL("../some/other/path/"),
+			expectManifestContent: manifestWithBaseURL("http://some.url/to/some/other/path/"),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			filter := NewDASHFilter(tt.manifestURL, tt.manifestContent, config.Config{})
+
+			manifest, err := filter.FilterManifest(&parsers.MediaFilters{})
+			if err != nil && !tt.expectErr {
+				t.Errorf("FilterManifest() didnt expect an error to be returned, got: %v", err)
+				return
+			} else if err == nil && tt.expectErr {
+				t.Error("FilterManifest() expected an error, got nil")
+				return
+			}
+
+			if g, e := manifest, tt.expectManifestContent; g != e {
+				t.Errorf("FilterManifest() wrong manifest returned\ngot %v\nexpected: %v\ndiff: %v", g, e,
+					cmp.Diff(g, e))
+			}
+		})
+	}
+}
+
 func TestDASHFilter_FilterManifest_captionTypes(t *testing.T) {
 	manifestWithWVTTAndSTPPCaptions := `<?xml version="1.0" encoding="UTF-8"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
   <Period>
     <AdaptationSet id="7357" lang="en" contentType="text">
       <Representation bandwidth="256" codecs="wvtt" id="subtitle_en"></Representation>
@@ -22,6 +97,7 @@ func TestDASHFilter_FilterManifest_captionTypes(t *testing.T) {
 
 	manifestWithWVTTCaptions := `<?xml version="1.0" encoding="UTF-8"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
   <Period>
     <AdaptationSet id="7357" lang="en" contentType="text">
       <Representation bandwidth="256" codecs="wvtt" id="subtitle_en"></Representation>
@@ -32,6 +108,7 @@ func TestDASHFilter_FilterManifest_captionTypes(t *testing.T) {
 
 	manifestWithSTPPCaptions := `<?xml version="1.0" encoding="UTF-8"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
   <Period>
     <AdaptationSet id="7357" lang="en" contentType="text">
       <Representation bandwidth="256" codecs="stpp" id="subtitle_en_ttml"></Representation>
@@ -42,6 +119,7 @@ func TestDASHFilter_FilterManifest_captionTypes(t *testing.T) {
 
 	manifestWithoutCaptions := `<?xml version="1.0" encoding="UTF-8"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
   <Period>
     <AdaptationSet id="7357" lang="en" contentType="text"></AdaptationSet>
   </Period>

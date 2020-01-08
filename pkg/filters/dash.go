@@ -1,6 +1,11 @@
 package filters
 
 import (
+	"fmt"
+	"net/url"
+	"path"
+	"strings"
+
 	"github.com/cbsinteractive/bakery/pkg/config"
 	"github.com/cbsinteractive/bakery/pkg/parsers"
 	"github.com/zencoder/go-dash/mpd"
@@ -8,8 +13,7 @@ import (
 
 const adaptationSetTypeText = "text"
 
-// DASHFilter implements the Filter interface for DASH
-// manifests
+// DASHFilter implements the Filter interface for DASH manifests
 type DASHFilter struct {
 	manifestURL     string
 	manifestContent string
@@ -25,12 +29,32 @@ func NewDASHFilter(manifestURL, manifestContent string, c config.Config) *DASHFi
 	}
 }
 
-// FilterManifest will be responsible for filtering the manifest
-// according  to the MediaFilters
+// FilterManifest will be responsible for filtering the manifest according  to the MediaFilters
 func (d *DASHFilter) FilterManifest(filters *parsers.MediaFilters) (string, error) {
 	manifest, err := mpd.ReadFromString(d.manifestContent)
 	if err != nil {
 		return "", err
+	}
+
+	u, err := url.Parse(d.manifestURL)
+	if err != nil {
+		return "", fmt.Errorf("parsing manifest url: %w", err)
+	}
+
+	baseURLWithPath := func(p string) string {
+		var sb strings.Builder
+		sb.WriteString(u.Scheme)
+		sb.WriteString("://")
+		sb.WriteString(u.Host)
+		sb.WriteString(p)
+		sb.WriteString("/")
+		return sb.String()
+	}
+
+	if manifest.BaseURL == "" {
+		manifest.BaseURL = baseURLWithPath(path.Dir(u.Path))
+	} else if !strings.HasPrefix(manifest.BaseURL, "http") {
+		manifest.BaseURL = baseURLWithPath(path.Join(path.Dir(u.Path), manifest.BaseURL))
 	}
 
 	if filters.CaptionTypes != nil {
