@@ -46,6 +46,10 @@ func LoadHandler(c config.Config) http.Handler {
 		} else if mediaFilters.Protocol == parsers.ProtocolDASH {
 			f = filters.NewDASHFilter(manifestURL, manifestContent, c)
 			w.Header().Set("Content-Type", "application/dash+xml")
+		} else {
+			err := fmt.Errorf("unsupported protocol %q", mediaFilters.Protocol)
+			httpError(c, w, err, "failed to select filter", http.StatusBadRequest)
+			return
 		}
 
 		// apply the filters to the origin manifest
