@@ -3,11 +3,11 @@ package handlers
 import (
 	"bytes"
 	"fmt"
+	"github.com/cbsinteractive/bakery/pkg/parsers"
 	"net/http"
 
-	"github.com/cbsinteractive/bakery/config"
-	"github.com/cbsinteractive/bakery/filters"
-	"github.com/cbsinteractive/bakery/parsers"
+	"github.com/cbsinteractive/bakery/pkg/config"
+	"github.com/cbsinteractive/bakery/pkg/filters"
 )
 
 // LoadHandler loads the handler for all the requests

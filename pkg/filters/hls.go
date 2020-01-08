@@ -2,11 +2,11 @@ package filters
 
 import (
 	"errors"
+	"github.com/cbsinteractive/bakery/pkg/parsers"
 	"path/filepath"
 	"strings"
 
-	"github.com/cbsinteractive/bakery/config"
-	"github.com/cbsinteractive/bakery/parsers"
+	"github.com/cbsinteractive/bakery/pkg/config"
 	"github.com/grafov/m3u8"
 )
 

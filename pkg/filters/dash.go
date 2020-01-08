@@ -1,9 +1,9 @@
 package filters
 
 import (
-	"github.com/cbsinteractive/bakery/config"
-	"github.com/cbsinteractive/bakery/parsers"
-	"github.com/cbsinteractive/go-dash/mpd"
+	"github.com/cbsinteractive/bakery/pkg/config"
+	"github.com/cbsinteractive/bakery/pkg/parsers"
+	"github.com/zencoder/go-dash/mpd"
 )
 
 // DASHFilter implements the Filter interface for DASH
