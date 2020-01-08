@@ -4,6 +4,8 @@ github.com/aws/aws-lambda-go v1.9.0 h1:r9TWtk8ozLYdMW+aelUeWny8z2mjghJCMx6/uUwOL
 github.com/aws/aws-lambda-go v1.9.0/go.mod h1:zUsUQhAUjYzR8AuduJPCfhBuKWUaDbQiPOG+ouzmE1A=
 github.com/cbsinteractive/go-dash v0.0.0-20200107194942-8356b3b1db96 h1:M4STPPkEUBGQ0C/bKyRQGO0n8w4PtE/zG6XoknMZC8k=
 github.com/cbsinteractive/go-dash v0.0.0-20200107194942-8356b3b1db96/go.mod h1:c8Gxxfmh0jmZ6G+ISlpa315WBVkzd8mEhu6gN9mn5Qg=
+github.com/cbsinteractive/go-dash v0.0.0-20200108003006-ba709501f98e h1:pew+BKpTNrGkoCckDFgwLbj72fzSp9RzLzED0YRvVBk=
+github.com/cbsinteractive/go-dash v0.0.0-20200108003006-ba709501f98e/go.mod h1:c8Gxxfmh0jmZ6G+ISlpa315WBVkzd8mEhu6gN9mn5Qg=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

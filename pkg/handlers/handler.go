@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/cbsinteractive/bakery/pkg/parsers"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/cbsinteractive/bakery/pkg/config"
 	"github.com/cbsinteractive/bakery/pkg/filters"
+	"github.com/cbsinteractive/bakery/pkg/parsers"
 )
 
 // LoadHandler loads the handler for all the requests
@@ -18,7 +18,6 @@ func LoadHandler(c config.Config) http.Handler {
 			return
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		defer r.Body.Close()
 		logger := c.GetLogger()
 		logger.Infof("%s %s %s", r.Method, r.RequestURI, r.RemoteAddr)
 
@@ -65,15 +64,18 @@ func LoadHandler(c config.Config) http.Handler {
 }
 
 func fetchManifest(c config.Config, manifestURL string) (string, error) {
-	client := c.Client.New()
-	resp, err := client.Get(manifestURL)
+	resp, err := c.Client.New().Get(manifestURL)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("fetching manifest: %w", err)
+	}
+	defer resp.Body.Close()
+
+	contents, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading manifest response body: %w", err)
 	}
 
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
-	return buf.String(), nil
+	return string(contents), nil
 }
 
 func httpError(c config.Config, w http.ResponseWriter, err error, message string, code int) {

@@ -31,5 +31,41 @@ func (d *DASHFilter) FilterManifest(filters *parsers.MediaFilters) (string, erro
 		return "", err
 	}
 
+	if filters.CaptionTypes != nil {
+		d.filterCaptionTypes(filters, manifest)
+	}
+
 	return manifest.WriteToString()
+}
+
+func (d *DASHFilter) filterCaptionTypes(filters *parsers.MediaFilters, manifest *mpd.MPD) {
+	supportedTypes := map[parsers.CaptionType]bool{}
+
+	for _, captionType := range filters.CaptionTypes {
+		supportedTypes[captionType] = true
+	}
+
+	for _, period := range manifest.Periods {
+		for _, as := range period.AdaptationSets {
+			if as.ContentType == nil {
+				continue
+			}
+
+			if *as.ContentType == "text" {
+				var filteredReps []*mpd.Representation
+				for _, r := range as.Representations {
+					if r.Codecs == nil {
+						filteredReps = append(filteredReps, r)
+						continue
+					}
+
+					if _, supported := supportedTypes[parsers.CaptionType(*r.Codecs)]; supported {
+						filteredReps = append(filteredReps, r)
+					}
+				}
+
+				as.Representations = filteredReps
+			}
+		}
+	}
 }
