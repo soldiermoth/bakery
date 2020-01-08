@@ -105,7 +105,3 @@ func TestDASHFilter_FilterManifest_captionTypes(t *testing.T) {
 		})
 	}
 }
-
-func strptr(str string) *string {
-	return &str
-}
