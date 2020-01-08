@@ -5,6 +5,7 @@
 *.so
 *.dylib
 
+
 # Test binary, build with `go test -c`
 *.test
 
@@ -16,6 +17,9 @@ bakery
 baker
 function.zip
 main
+
+# JetBrains IDE
+.idea/
 
 # local file for setting envvars '. ./set_vars.sh'
 set_vars.sh
