@@ -61,6 +61,8 @@ type MediaFilters struct {
 	Protocol         Protocol          `json:"protocol"`
 }
 
+var urlParseRegexp = regexp.MustCompile(`(.*)\((.*)\)`)
+
 // URLParse will generate a MediaFilters struct with
 // all the filters that needs to be applied to the
 // master manifest. It will also return the master manifest
@@ -68,7 +70,7 @@ type MediaFilters struct {
 func URLParse(urlpath string) (string, *MediaFilters, error) {
 	mf := new(MediaFilters)
 	parts := strings.Split(urlpath, "/")
-	re := regexp.MustCompile(`(.*)\((.*)\)`)
+	re := urlParseRegexp
 	masterManifestPath := "/"
 
 	if strings.Contains(urlpath, ".m3u8") {
