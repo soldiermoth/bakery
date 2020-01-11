@@ -65,10 +65,10 @@ func (d *DASHFilter) FilterManifest(filters *parsers.MediaFilters) (string, erro
 }
 
 func (d *DASHFilter) filterCaptionTypes(filters *parsers.MediaFilters, manifest *mpd.MPD) {
-	supportedTypes := map[parsers.CaptionType]bool{}
+	supportedTypes := map[parsers.CaptionType]struct{}{}
 
 	for _, captionType := range filters.CaptionTypes {
-		supportedTypes[captionType] = true
+		supportedTypes[captionType] = struct{}{}
 	}
 
 	for _, period := range manifest.Periods {
