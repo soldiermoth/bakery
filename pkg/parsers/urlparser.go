@@ -23,6 +23,9 @@ type CaptionLanguage string
 // CaptionType is an allowed caption format for the stream
 type CaptionType string
 
+// StreamType represents one stream type (e.g. video, audio, text)
+type StreamType string
+
 // Protocol describe the valid protocols
 type Protocol string
 
@@ -51,14 +54,15 @@ const (
 
 // MediaFilters is a struct that carry all the information passed via url
 type MediaFilters struct {
-	Videos           []VideoType       `json:"Videos,omitempty"`
-	Audios           []AudioType       `json:"Audios,omitempty"`
-	AudioLanguages   []AudioLanguage   `json:"AudioLanguages,omitempty"`
-	CaptionLanguages []CaptionLanguage `json:"CaptionLanguages,omitempty"`
-	CaptionTypes     []CaptionType     `json:"CaptionTypes,omitempty"`
-	MaxBitrate       int               `json:"MinBitrate,omitempty"`
-	MinBitrate       int               `json:"MaxBitrate,omitempty"`
-	Protocol         Protocol          `json:"protocol"`
+	Videos            []VideoType       `json:",omitempty"`
+	Audios            []AudioType       `json:",omitempty"`
+	AudioLanguages    []AudioLanguage   `json:",omitempty"`
+	CaptionLanguages  []CaptionLanguage `json:",omitempty"`
+	CaptionTypes      []CaptionType     `json:",omitempty"`
+	FilterStreamTypes []StreamType      `json:",omitempty"`
+	MaxBitrate        int               `json:",omitempty"`
+	MinBitrate        int               `json:",omitempty"`
+	Protocol          Protocol          `json:"protocol"`
 }
 
 var urlParseRegexp = regexp.MustCompile(`(.*)\((.*)\)`)
@@ -120,6 +124,10 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 
 			for _, captionType := range filters {
 				mf.CaptionTypes = append(mf.CaptionTypes, CaptionType(captionType))
+			}
+		case "fs":
+			for _, streamType := range filters {
+				mf.FilterStreamTypes = append(mf.FilterStreamTypes, StreamType(streamType))
 			}
 		case "b":
 			if filters[0] != "" {
