@@ -58,7 +58,7 @@ func (d *DASHFilter) FilterManifest(filters *parsers.MediaFilters) (string, erro
 		manifest.BaseURL = baseURLWithPath(path.Join(path.Dir(u.Path), manifest.BaseURL))
 	}
 
-	if filters.FilterStreamTypes != nil {
+	if filters.FilterStreamTypes != nil && len(filters.FilterStreamTypes) > 0 {
 		d.filterAdaptationSetType(filters, manifest)
 	}
 
