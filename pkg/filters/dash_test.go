@@ -181,3 +181,122 @@ func TestDASHFilter_FilterManifest_captionTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestDASHFilter_FilterManifest_filterStreams(t *testing.T) {
+	manifestWithAudioAndVideoStreams := `<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
+  <Period id="0">
+    <AdaptationSet id="0" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="2" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="3" lang="en" contentType="audio"></AdaptationSet>
+    <AdaptationSet id="4" lang="en" contentType="audio"></AdaptationSet>
+  </Period>
+  <Period id="1">
+    <AdaptationSet id="0" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="2" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="3" lang="en" contentType="audio"></AdaptationSet>
+    <AdaptationSet id="4" lang="en" contentType="audio"></AdaptationSet>
+  </Period>
+  <Period id="2">
+    <AdaptationSet id="0" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="2" lang="en" contentType="video"></AdaptationSet>
+  </Period>
+</MPD>
+`
+
+	manifestWithOnlyAudioStreams := `<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
+  <Period id="0">
+    <AdaptationSet id="0" lang="en" contentType="audio"></AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="audio"></AdaptationSet>
+  </Period>
+  <Period id="1">
+    <AdaptationSet id="0" lang="en" contentType="audio"></AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="audio"></AdaptationSet>
+  </Period>
+</MPD>
+`
+
+	manifestWithOnlyVideoStreams := `<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
+  <Period id="0">
+    <AdaptationSet id="0" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="2" lang="en" contentType="video"></AdaptationSet>
+  </Period>
+  <Period id="1">
+    <AdaptationSet id="0" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="2" lang="en" contentType="video"></AdaptationSet>
+  </Period>
+  <Period id="2">
+    <AdaptationSet id="0" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="video"></AdaptationSet>
+    <AdaptationSet id="2" lang="en" contentType="video"></AdaptationSet>
+  </Period>
+</MPD>
+`
+
+	manifestWithoutStreams := `<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
+</MPD>
+`
+
+	tests := []struct {
+		name                  string
+		filters               *parsers.MediaFilters
+		manifestContent       string
+		expectManifestContent string
+	}{
+		{
+			name:                  "when no streams are configured to be filtered, the manifest is not modified",
+			filters:               &parsers.MediaFilters{},
+			manifestContent:       manifestWithAudioAndVideoStreams,
+			expectManifestContent: manifestWithAudioAndVideoStreams,
+		},
+		{
+			name:                  "when video streams are filtered, the manifest contains no video adaptation sets",
+			filters:               &parsers.MediaFilters{FilterStreamTypes: []parsers.StreamType{"video"}},
+			manifestContent:       manifestWithAudioAndVideoStreams,
+			expectManifestContent: manifestWithOnlyAudioStreams,
+		},
+		{
+			name:                  "when audio streams are filtered, the manifest contains no audio adaptation sets",
+			filters:               &parsers.MediaFilters{FilterStreamTypes: []parsers.StreamType{"audio"}},
+			manifestContent:       manifestWithAudioAndVideoStreams,
+			expectManifestContent: manifestWithOnlyVideoStreams,
+		},
+		{
+			name: "when audio and video streams are filtered, the manifest contains no audio or " +
+				"video adaptation sets",
+			filters:               &parsers.MediaFilters{FilterStreamTypes: []parsers.StreamType{"video", "audio"}},
+			manifestContent:       manifestWithAudioAndVideoStreams,
+			expectManifestContent: manifestWithoutStreams,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			filter := NewDASHFilter("", tt.manifestContent, config.Config{})
+
+			manifest, err := filter.FilterManifest(tt.filters)
+			if err != nil {
+				t.Errorf("FilterManifest() didnt expect an error to be returned, got: %v", err)
+				return
+			}
+
+			if g, e := manifest, tt.expectManifestContent; g != e {
+				t.Errorf("FilterManifest() wrong manifest returned\ngot %v\nexpected: %v\ndiff: %v", g, e,
+					cmp.Diff(g, e))
+			}
+		})
+	}
+}

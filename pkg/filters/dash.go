@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/cbsinteractive/bakery/pkg/config"
@@ -57,6 +58,10 @@ func (d *DASHFilter) FilterManifest(filters *parsers.MediaFilters) (string, erro
 		manifest.BaseURL = baseURLWithPath(path.Join(path.Dir(u.Path), manifest.BaseURL))
 	}
 
+	if filters.FilterStreamTypes != nil && len(filters.FilterStreamTypes) > 0 {
+		d.filterAdaptationSetType(filters, manifest)
+	}
+
 	if filters.CaptionTypes != nil {
 		d.filterCaptionTypes(filters, manifest)
 	}
@@ -65,10 +70,9 @@ func (d *DASHFilter) FilterManifest(filters *parsers.MediaFilters) (string, erro
 }
 
 func (d *DASHFilter) filterCaptionTypes(filters *parsers.MediaFilters, manifest *mpd.MPD) {
-	supportedTypes := map[parsers.CaptionType]bool{}
-
+	supportedCaptionTypes := map[parsers.CaptionType]struct{}{}
 	for _, captionType := range filters.CaptionTypes {
-		supportedTypes[captionType] = true
+		supportedCaptionTypes[captionType] = struct{}{}
 	}
 
 	for _, period := range manifest.Periods {
@@ -86,7 +90,7 @@ func (d *DASHFilter) filterCaptionTypes(filters *parsers.MediaFilters, manifest 
 						continue
 					}
 
-					if _, supported := supportedTypes[parsers.CaptionType(*r.Codecs)]; supported {
+					if _, supported := supportedCaptionTypes[parsers.CaptionType(*r.Codecs)]; supported {
 						filteredReps = append(filteredReps, r)
 					}
 				}
@@ -95,4 +99,46 @@ func (d *DASHFilter) filterCaptionTypes(filters *parsers.MediaFilters, manifest 
 			}
 		}
 	}
+}
+
+func (d *DASHFilter) filterAdaptationSetType(filters *parsers.MediaFilters, manifest *mpd.MPD) {
+	filteredAdaptationSetTypes := map[parsers.StreamType]struct{}{}
+	for _, streamType := range filters.FilterStreamTypes {
+		filteredAdaptationSetTypes[streamType] = struct{}{}
+	}
+
+	periodIndex := 0
+	var filteredPeriods []*mpd.Period
+	for _, period := range manifest.Periods {
+		var filteredAdaptationSets []*mpd.AdaptationSet
+		asIndex := 0
+		for _, as := range period.AdaptationSets {
+			if as.ContentType != nil {
+				if _, filtered := filteredAdaptationSetTypes[parsers.StreamType(*as.ContentType)]; filtered {
+					continue
+				}
+			}
+
+			as.ID = strptr(strconv.Itoa(asIndex))
+			asIndex++
+
+			filteredAdaptationSets = append(filteredAdaptationSets, as)
+		}
+
+		if len(filteredAdaptationSets) == 0 {
+			continue
+		}
+
+		period.AdaptationSets = filteredAdaptationSets
+		period.ID = strconv.Itoa(periodIndex)
+		periodIndex++
+
+		filteredPeriods = append(filteredPeriods, period)
+	}
+
+	manifest.Periods = filteredPeriods
+}
+
+func strptr(s string) *string {
+	return &s
 }
