@@ -1,4 +1,7 @@
-# Bakery
+<p align="center">
+  <img width="250" src="http://flv.io/bakery-logo.svg">
+</p>
+
 
 Bakery is a proxy and filter for HLS and DASH manifests.
 
