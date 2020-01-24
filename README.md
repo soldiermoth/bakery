@@ -25,6 +25,22 @@ If your playback URL is `http://streaming.cbsi.video/star_trek_discovery/S01/E01
 
 If you want to apply filters, they should be placed right after the Bakery host. Following the example above, if you want to filter out all the levels that are outside of a given bitrate range, the playback URL should be: `http://bakery.host.here/b(1000,4000)/star_trek_discovery/S01/E01.m3u8`, where 1000Kbps and 4000Kbps are the lower and higher boundaries.
 
+#### Supported Filters
+
+- HLS
+
+| name | example | description |
+|------|---------|-------------|
+| bandwidth | b(200,800) | An inclusive range of variant bitrates<br> to include in the modified manifest,<br> variants outside this range will be filtered<br> out. If a single value is provided, it will<br>define the minimum bitrate desired in the <br>modified manifest
+
+
+- DASH
+
+| name | example | description |
+|------|---------|-------------|
+| stream | fs(audio) | Values in this filter define stream types you wish<br> to remove from your manifest. The filter in this  <br>example will filter out all audio streams from the<br> modified manifest. |
+| caption type | ct(wvtt) | Values in this filter define a whitelist of the caption<br> types you want included in the modifed manifest.<br> Passing an empty value fopr this filter will remove<br>all caption types from the manifest.
+
 #### Run the API:
 
     $ make run
