@@ -39,7 +39,7 @@ If you want to apply filters, they should be placed right after the Bakery host.
 | name | example | description |
 |------|---------|-------------|
 | stream | fs(audio) | Values in this filter define stream types you wish<br> to remove from your manifest. The filter in this  <br>example will filter out all audio streams from the<br> modified manifest. |
-| caption type | ct(wvtt) | Values in this filter define a whitelist of the caption<br> types you want included in the modifed manifest.<br> Passing an empty value fopr this filter will remove<br>all caption types from the manifest.
+| caption type | ct(wvtt) | Values in this filter define a whitelist of the caption<br> types you want included in the modifed manifest.<br> Passing an empty value for this filter will remove<br>all caption types from the manifest.
 
 #### Run the API:
 
