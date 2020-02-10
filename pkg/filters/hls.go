@@ -47,7 +47,7 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 		absoluteURL, _ := filepath.Split(h.manifestURL)
 
 		normalizedVariant := h.normalizeVariant(v, absoluteURL)
-		if h.validateVariant(filters, normalizedVariant) {
+		if h.validateVariants(filters, normalizedVariant) {
 			filteredManifest.Append(normalizedVariant.URI, normalizedVariant.Chunklist, normalizedVariant.VariantParams)
 		}
 	}
@@ -55,9 +55,19 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 	return filteredManifest.String(), nil
 }
 
-func (h *HLSFilter) validateVariant(filters *parsers.MediaFilters, v *m3u8.Variant) bool {
+func (h *HLSFilter) validateVariants(filters *parsers.MediaFilters, v *m3u8.Variant) bool {
+	if filters.DefinesBitrateFilter() {
+		if !(h.validateBandwidthVariant(filters.MinBitrate, filters.MaxBitrate, v)) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (h *HLSFilter) validateBandwidthVariant(minBitrate int, maxBitrate int, v *m3u8.Variant) bool {
 	bw := int(v.VariantParams.Bandwidth)
-	if bw > filters.MaxBitrate || bw < filters.MinBitrate {
+	if bw > maxBitrate || bw < minBitrate {
 		return false
 	}
 
