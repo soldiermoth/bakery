@@ -63,7 +63,26 @@ func (d *DASHFilter) FilterManifest(filters *parsers.MediaFilters) (string, erro
 		filter(filters, manifest)
 	}
 
+	updateLanguageTrack(manifest)
+
 	return manifest.WriteToString()
+}
+
+func updateLanguageTrack(manifest *mpd.MPD) {
+	for _, period := range manifest.Periods {
+		for _, as := range period.AdaptationSets {
+			if as.ContentType != nil && *as.ContentType == "audio" && *as.Lang == "en" {
+				if as.Roles == nil {
+					uri := "urn:mpeg:dash:role:2011"
+					val := "main"
+					mainRole := []*mpd.Role{
+						{SchemeIDURI: &uri, Value: &val},
+					}
+					as.Roles = mainRole
+				}
+			}
+		}
+	}
 }
 
 func (d *DASHFilter) getFilters(filters *parsers.MediaFilters) []execFilter {
