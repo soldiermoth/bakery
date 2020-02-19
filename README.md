@@ -2,6 +2,8 @@
   <img width="250" src="http://flv.io/bakery-logo.svg">
 </p>
 
+[![codecov](https://codecov.io/gh/cbsinteractive/bakery/branch/master/graph/badge.svg)](https://codecov.io/gh/cbsinteractive/bakery)
+
 
 Bakery is a proxy and filter for HLS and DASH manifests.
 
