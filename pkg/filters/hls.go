@@ -18,6 +18,12 @@ type HLSFilter struct {
 	config          config.Config
 }
 
+var matchFunctions = map[ContentType]func(string) bool{
+	audioContentType:   isAudioCodec,
+	videoContentType:   isVideoCodec,
+	captionContentType: isCaptionCodec,
+}
+
 // NewHLSFilter is the HLS filter constructor
 func NewHLSFilter(manifestURL, manifestContent string, c config.Config) *HLSFilter {
 	return &HLSFilter{
@@ -47,7 +53,11 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 		absoluteURL, _ := filepath.Split(h.manifestURL)
 
 		normalizedVariant := h.normalizeVariant(v, absoluteURL)
-		if h.validateVariants(filters, normalizedVariant) {
+		validatedFilters, err := h.validateVariants(filters, normalizedVariant)
+		if err != nil {
+			return "", err
+		}
+		if validatedFilters {
 			filteredManifest.Append(normalizedVariant.URI, normalizedVariant.Chunklist, normalizedVariant.VariantParams)
 		}
 	}
@@ -55,14 +65,75 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 	return filteredManifest.String(), nil
 }
 
-func (h *HLSFilter) validateVariants(filters *parsers.MediaFilters, v *m3u8.Variant) bool {
+// Returns true if specified variant passes all filters
+func (h *HLSFilter) validateVariants(filters *parsers.MediaFilters, v *m3u8.Variant) (bool, error) {
 	if filters.DefinesBitrateFilter() {
 		if !(h.validateBandwidthVariant(filters.MinBitrate, filters.MaxBitrate, v)) {
-			return false
+			return false, nil
 		}
 	}
 
-	return true
+	variantCodecs := strings.Split(v.Codecs, ",")
+
+	if filters.Audios != nil {
+		supportedAudioTypes := map[string]struct{}{}
+		for _, at := range filters.Audios {
+			supportedAudioTypes[string(at)] = struct{}{}
+		}
+		res, err := validateVariantCodecs(audioContentType, variantCodecs, supportedAudioTypes, matchFunctions)
+		if !res {
+			return false, err
+		}
+	}
+
+	if filters.Videos != nil {
+		supportedVideoTypes := map[string]struct{}{}
+		for _, vt := range filters.Videos {
+			supportedVideoTypes[string(vt)] = struct{}{}
+		}
+		res, err := validateVariantCodecs(videoContentType, variantCodecs, supportedVideoTypes, matchFunctions)
+		if !res {
+			return false, err
+		}
+	}
+
+	if filters.CaptionTypes != nil {
+		supportedCaptionTypes := map[string]struct{}{}
+		for _, ct := range filters.CaptionTypes {
+			supportedCaptionTypes[string(ct)] = struct{}{}
+		}
+		res, err := validateVariantCodecs(captionContentType, variantCodecs, supportedCaptionTypes, matchFunctions)
+		if !res {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+// Returns true if the given variant (variantCodecs) should be allowed through the filter for supportedCodecs of filterType
+func validateVariantCodecs(filterType ContentType, variantCodecs []string, supportedCodecs map[string]struct{}, supportedFilterTypes map[ContentType]func(string) bool) (bool, error) {
+	var matchFilterType func(string) bool
+	var typeInVariant, matchInVariant int
+
+	matchFilterType, found := supportedFilterTypes[filterType]
+
+	if !found {
+		return false, errors.New("filter type is unsupported")
+	}
+
+	for _, codec := range variantCodecs {
+		if matchFilterType(codec) {
+			typeInVariant++
+			for sc := range supportedCodecs {
+				if ValidCodecs(codec, CodecFilterID(sc)) {
+					matchInVariant++
+					break
+				}
+			}
+		}
+	}
+	return typeInVariant == matchInVariant, nil
 }
 
 func (h *HLSFilter) validateBandwidthVariant(minBitrate int, maxBitrate int, v *m3u8.Variant) bool {
@@ -82,4 +153,24 @@ func (h *HLSFilter) normalizeVariant(v *m3u8.Variant, absoluteURL string) *m3u8.
 	v.URI = absoluteURL + v.URI
 
 	return v
+}
+
+// Returns true if given codec is an audio codec (mp4a, ec-3, or ac-3)
+func isAudioCodec(codec string) bool {
+	return (ValidCodecs(codec, aacCodec) ||
+		ValidCodecs(codec, ec3Codec) ||
+		ValidCodecs(codec, ac3Codec))
+}
+
+// Returns true if given codec is a video codec (hvc, avc, or dvh)
+func isVideoCodec(codec string) bool {
+	return (ValidCodecs(codec, hevcCodec) ||
+		ValidCodecs(codec, avcCodec) ||
+		ValidCodecs(codec, dolbyCodec))
+}
+
+// Returns true if goven codec is a caption codec (stpp or wvtt)
+func isCaptionCodec(codec string) bool {
+	return (ValidCodecs(codec, stppCodec) ||
+		ValidCodecs(codec, wvttCodec))
 }
