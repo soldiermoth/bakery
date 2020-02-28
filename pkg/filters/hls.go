@@ -2,6 +2,7 @@ package filters
 
 import (
 	"errors"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -51,12 +52,19 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 
 	for _, v := range manifest.Variants {
 		absoluteURL, _ := filepath.Split(h.manifestURL)
-
-		normalizedVariant := h.normalizeVariant(v, absoluteURL)
+		absolute, aErr := url.Parse(absoluteURL)
+		if aErr != nil {
+			return h.manifestContent, aErr
+		}
+		normalizedVariant, err := h.normalizeVariant(v, *absolute)
+		if err != nil {
+			return "", err
+		}
 		validatedFilters, err := h.validateVariants(filters, normalizedVariant)
 		if err != nil {
 			return "", err
 		}
+
 		if validatedFilters {
 			filteredManifest.Append(normalizedVariant.URI, normalizedVariant.Chunklist, normalizedVariant.VariantParams)
 		}
@@ -145,14 +153,47 @@ func (h *HLSFilter) validateBandwidthVariant(minBitrate int, maxBitrate int, v *
 	return true
 }
 
-func (h *HLSFilter) normalizeVariant(v *m3u8.Variant, absoluteURL string) *m3u8.Variant {
+func (h *HLSFilter) normalizeVariant(v *m3u8.Variant, absolute url.URL) (*m3u8.Variant, error) {
 	for _, a := range v.VariantParams.Alternatives {
-		a.URI = absoluteURL + a.URI
+		aUrl, aErr := combinedIfRelative(a.URI, absolute)
+		if aErr != nil {
+			return v, aErr
+		}
+		a.URI = aUrl
 	}
 
-	v.URI = absoluteURL + v.URI
+	vUrl, vErr := combinedIfRelative(v.URI, absolute)
+	if vErr != nil {
+		return v, vErr
+	}
+	v.URI = vUrl
+	return v, nil
+}
 
-	return v
+func combinedIfRelative(uri string, absolute url.URL) (string, error) {
+	if len(uri) == 0 {
+		return uri, nil
+	}
+	relative, err := isRelative(uri)
+	if err != nil {
+		return uri, err
+	}
+	if relative {
+		combined, err := absolute.Parse(uri)
+		if err != nil {
+			return uri, err
+		}
+		return combined.String(), err
+	}
+	return uri, nil
+}
+
+func isRelative(urlStr string) (bool, error) {
+	u, e := url.Parse(urlStr)
+	if e != nil {
+		return false, e
+	}
+	return !u.IsAbs(), nil
 }
 
 // Returns true if given codec is an audio codec (mp4a, ec-3, or ac-3)
