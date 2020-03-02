@@ -776,6 +776,12 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
 			manifestContent:       baseManifest,
 			expectManifestContent: manifestFiltering2048And4096Representations,
 		},
+		{
+			name:                  "when valid input and filter specified to video, expect filtered video results and all non-video adaptation sets",
+			filters:               &parsers.MediaFilters{FilterBitrateTypes: []parsers.StreamType{"video"}, MinBitrate: 2000, MaxBitrate: 3000},
+			manifestContent:       baseManifest,
+			expectManifestContent: manifestFiltering4096Representation,
+		},
 	}
 
 	for _, tt := range tests {
