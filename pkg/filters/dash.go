@@ -207,24 +207,37 @@ func matchCodec(codec string, ct ContentType, supportedCodecs map[string]struct{
 }
 
 func (d *DASHFilter) filterBandwidth(filters *parsers.MediaFilters, manifest *mpd.MPD) {
+	filteredAdaptationSetTypes := map[parsers.StreamType]struct{}{}
+	for _, streamType := range filters.FilterBitrateTypes {
+		filteredAdaptationSetTypes[streamType] = struct{}{}
+	}
+	mapEmpty := len(filters.FilterBitrateTypes) == 0
+	fmt.Println(filteredAdaptationSetTypes)
 	for _, period := range manifest.Periods {
 		var filteredAdaptationSets []*mpd.AdaptationSet
 
 		for _, as := range period.AdaptationSets {
 			var filteredRepresentations []*mpd.Representation
+			if as.ContentType != nil {
+				_, inMap := filteredAdaptationSetTypes[parsers.StreamType(*as.ContentType)]
+				if inMap || mapEmpty {
+					for _, r := range as.Representations {
+						if r.Bandwidth == nil {
+							continue
+						}
+						if *r.Bandwidth <= int64(filters.MaxBitrate) && *r.Bandwidth >= int64(filters.MinBitrate) {
+							filteredRepresentations = append(filteredRepresentations, r)
+						}
+					}
+					as.Representations = filteredRepresentations
+					if len(as.Representations) != 0 {
+						filteredAdaptationSets = append(filteredAdaptationSets, as)
+					}
+				} else {
+					filteredAdaptationSets = append(filteredAdaptationSets, as)
+				}
+			}
 
-			for _, r := range as.Representations {
-				if r.Bandwidth == nil {
-					continue
-				}
-				if *r.Bandwidth <= int64(filters.MaxBitrate) && *r.Bandwidth >= int64(filters.MinBitrate) {
-					filteredRepresentations = append(filteredRepresentations, r)
-				}
-			}
-			as.Representations = filteredRepresentations
-			if len(as.Representations) != 0 {
-				filteredAdaptationSets = append(filteredAdaptationSets, as)
-			}
 		}
 
 		period.AdaptationSets = filteredAdaptationSets

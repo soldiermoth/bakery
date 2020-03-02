@@ -1,6 +1,7 @@
 package parsers
 
 import (
+	"fmt"
 	"math"
 	"path"
 	"regexp"
@@ -56,15 +57,16 @@ const (
 
 // MediaFilters is a struct that carry all the information passed via url
 type MediaFilters struct {
-	Videos            []VideoType       `json:",omitempty"`
-	Audios            []AudioType       `json:",omitempty"`
-	AudioLanguages    []AudioLanguage   `json:",omitempty"`
-	CaptionLanguages  []CaptionLanguage `json:",omitempty"`
-	CaptionTypes      []CaptionType     `json:",omitempty"`
-	FilterStreamTypes []StreamType      `json:",omitempty"`
-	MaxBitrate        int               `json:",omitempty"`
-	MinBitrate        int               `json:",omitempty"`
-	Protocol          Protocol          `json:"protocol"`
+	Videos             []VideoType       `json:",omitempty"`
+	Audios             []AudioType       `json:",omitempty"`
+	AudioLanguages     []AudioLanguage   `json:",omitempty"`
+	CaptionLanguages   []CaptionLanguage `json:",omitempty"`
+	CaptionTypes       []CaptionType     `json:",omitempty"`
+	FilterStreamTypes  []StreamType      `json:",omitempty"`
+	FilterBitrateTypes []StreamType      `json:",omitempty"`
+	MaxBitrate         int               `json:",omitempty"`
+	MinBitrate         int               `json:",omitempty"`
+	Protocol           Protocol          `json:"protocol"`
 }
 
 var urlParseRegexp = regexp.MustCompile(`(.*)\((.*)\)`)
@@ -101,7 +103,7 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 		}
 
 		filters := strings.Split(subparts[2], ",")
-
+		fmt.Println(filters)
 		switch key := subparts[1]; key {
 		case "v":
 			for _, videoType := range filters {
@@ -137,12 +139,15 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 				mf.FilterStreamTypes = append(mf.FilterStreamTypes, StreamType(streamType))
 			}
 		case "b":
-			if filters[0] != "" {
-				mf.MinBitrate, _ = strconv.Atoi(filters[0])
+			for i := 0; i < len(filters)-2; i++ {
+				mf.FilterBitrateTypes = append(mf.FilterBitrateTypes, StreamType(filters[i]))
+			}
+			if filters[len(filters)-2] != "" {
+				mf.MinBitrate, _ = strconv.Atoi(filters[len(filters)-2])
 			}
 
-			if filters[1] != "" {
-				mf.MaxBitrate, _ = strconv.Atoi(filters[1])
+			if filters[len(filters)-1] != "" {
+				mf.MaxBitrate, _ = strconv.Atoi(filters[len(filters)-1])
 			}
 		}
 	}
