@@ -77,6 +77,26 @@ func TestURLParseUrl(t *testing.T) {
 			"/",
 		},
 		{
+			"bitrate range and audio specifier",
+			"/b(audio,0,1000)",
+			MediaFilters{
+				FilterBitrateTypes: []StreamType{"audio"},
+				MinBitrate:         0,
+				MaxBitrate:         1000,
+			},
+			"/",
+		},
+		{
+			"bitrate range and audio and video specifiers",
+			"/b(audio,video,0,1000)",
+			MediaFilters{
+				FilterBitrateTypes: []StreamType{"audio", "video"},
+				MinBitrate:         0,
+				MaxBitrate:         1000,
+			},
+			"/",
+		},
+		{
 			"detect protocol hls for urls with .m3u8 extension",
 			"/path/here/with/master.m3u8",
 			MediaFilters{

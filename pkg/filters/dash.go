@@ -212,7 +212,6 @@ func (d *DASHFilter) filterBandwidth(filters *parsers.MediaFilters, manifest *mp
 		filteredAdaptationSetTypes[streamType] = struct{}{}
 	}
 	mapEmpty := len(filters.FilterBitrateTypes) == 0
-	fmt.Println(filteredAdaptationSetTypes)
 	for _, period := range manifest.Periods {
 		var filteredAdaptationSets []*mpd.AdaptationSet
 
