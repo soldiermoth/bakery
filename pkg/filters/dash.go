@@ -207,34 +207,48 @@ func matchCodec(codec string, ct ContentType, supportedCodecs map[string]struct{
 }
 
 func (d *DASHFilter) filterBandwidth(filters *parsers.MediaFilters, manifest *mpd.MPD) {
-	filteredAdaptationSetTypes := map[parsers.StreamType]struct{}{}
-	for _, streamType := range filters.FilterBitrateTypes {
-		filteredAdaptationSetTypes[streamType] = struct{}{}
-	}
-	mapEmpty := len(filters.FilterBitrateTypes) == 0
 	for _, period := range manifest.Periods {
 		var filteredAdaptationSets []*mpd.AdaptationSet
-
 		for _, as := range period.AdaptationSets {
 			var filteredRepresentations []*mpd.Representation
 			if as.ContentType != nil {
-				_, inMap := filteredAdaptationSetTypes[parsers.StreamType(*as.ContentType)]
-				if inMap || mapEmpty {
-					for _, r := range as.Representations {
-						if r.Bandwidth == nil {
-							continue
-						}
-						if *r.Bandwidth <= int64(filters.MaxBitrate) && *r.Bandwidth >= int64(filters.MinBitrate) {
-							filteredRepresentations = append(filteredRepresentations, r)
-						}
-					}
-					as.Representations = filteredRepresentations
-					if len(as.Representations) != 0 {
-						filteredAdaptationSets = append(filteredAdaptationSets, as)
-					}
+
+				var lowerBitrate int64
+				var upperBitrate int64
+				var subfilter *parsers.Subfilters
+
+				// set subfilter equivalent to the subfilter of the adaptation set's content type
+				switch *as.ContentType {
+				case string(audioContentType):
+					subfilter = &filters.AudioSubFilters
+				case string(videoContentType):
+					subfilter = &filters.VideoSubFilters
+				}
+
+				// if the subfilter in the adaptation set applies to the content type of the adaptation set
+				if subfilter.BitrateSubfilterApplies() {
+					lowerBitrate = int64(subfilter.MinBitrate)
+					upperBitrate = int64(subfilter.MaxBitrate)
 				} else {
+					lowerBitrate = int64(filters.MinBitrate)
+					upperBitrate = int64(filters.MaxBitrate)
+				}
+
+				// to do later: make sure lowerBitrate/upperBitrate fall within the range of the overall filters.Min/MaxBitrate
+
+				for _, r := range as.Representations {
+					if r.Bandwidth == nil {
+						continue
+					}
+					if *r.Bandwidth <= upperBitrate && *r.Bandwidth >= lowerBitrate {
+						filteredRepresentations = append(filteredRepresentations, r)
+					}
+				}
+				as.Representations = filteredRepresentations
+				if len(as.Representations) != 0 {
 					filteredAdaptationSets = append(filteredAdaptationSets, as)
 				}
+
 			}
 
 		}

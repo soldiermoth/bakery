@@ -742,13 +742,13 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
 		},
 		{
 			name:                  "when hitting lower boundary (minBitrate = 0), expect results to be filtered",
-			filters:               &parsers.MediaFilters{MinBitrate: 0, MaxBitrate: 4000},
+			filters:               &parsers.MediaFilters{MinBitrate: 0, MaxBitrate: 4000, VideoSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}, AudioSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}},
 			manifestContent:       baseManifest,
 			expectManifestContent: manifestFiltering4096Representation,
 		},
 		{
 			name:                  "when hitting upper bounary (maxBitrate = math.MaxInt32), expect results to be filtered",
-			filters:               &parsers.MediaFilters{MinBitrate: 4000, MaxBitrate: math.MaxInt32},
+			filters:               &parsers.MediaFilters{MinBitrate: 4000, MaxBitrate: math.MaxInt32, VideoSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}, AudioSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}},
 			manifestContent:       baseManifest,
 			expectManifestContent: manifestFiltering256And2048Representations,
 		},
@@ -766,25 +766,19 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
 		},
 		{
 			name:                  "when valid input, expect filtered results with no adaptation sets removed",
-			filters:               &parsers.MediaFilters{MinBitrate: 10, MaxBitrate: 4000},
+			filters:               &parsers.MediaFilters{MinBitrate: 10, MaxBitrate: 4000, VideoSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}, AudioSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}},
 			manifestContent:       baseManifest,
 			expectManifestContent: manifestFiltering4096Representation,
 		},
 		{
 			name:                  "when valid input, expect filtered results with one adaptation set removed",
-			filters:               &parsers.MediaFilters{MinBitrate: 100, MaxBitrate: 1000},
+			filters:               &parsers.MediaFilters{MinBitrate: 100, MaxBitrate: 1000, VideoSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}, AudioSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}},
 			manifestContent:       baseManifest,
 			expectManifestContent: manifestFiltering2048And4096Representations,
 		},
 		{
-			name:                  "when valid input and filter specified to video, expect filtered video results and all non-video adaptation sets",
-			filters:               &parsers.MediaFilters{FilterBitrateTypes: []parsers.StreamType{"video"}, MinBitrate: 2000, MaxBitrate: 3000},
-			manifestContent:       baseManifest,
-			expectManifestContent: manifestFiltering4096Representation,
-		},
-		{
-			name:                  "when valid input and filter specified to video and audio, expect filtered video and audio results only",
-			filters:               &parsers.MediaFilters{FilterBitrateTypes: []parsers.StreamType{"video", "audio"}, MinBitrate: 10, MaxBitrate: 4000},
+			name:                  "when filtering bitrate in video only, expect filtered results",
+			filters:               &parsers.MediaFilters{MinBitrate: 10, MaxBitrate: math.MaxInt32, VideoSubFilters: parsers.Subfilters{MaxBitrate: 3000}, AudioSubFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}},
 			manifestContent:       baseManifest,
 			expectManifestContent: manifestFiltering4096Representation,
 		},
@@ -805,7 +799,7 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
 			}
 
 			if g, e := manifest, tt.expectManifestContent; g != e {
-				t.Errorf("FilterManifest() returned wrong manifest\ngot %v\nexpected %v\ndiff: %v", g, e, cmp.Diff(g, e))
+				t.Fatalf("FilterManifest() returned wrong manifest\ngot %v\nexpected %v\ndiff: %v", g, e, cmp.Diff(g, e))
 			}
 		})
 	}
