@@ -10,8 +10,8 @@ Values in this filter define a whitelist of stream types you want to **EXCLUDE**
 
 ## Protocol Support
 
-hls | dash |
-----|------|
+HLS | DASH |
+:--:|:----:|
 no  | yes  |
 
 ## Supported Values
