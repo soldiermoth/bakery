@@ -39,7 +39,7 @@ Unsure how to get started? Check out our quick start tutorial!
 
 ## Filters
 
-Check out our Filters <a href="/filters">here</a>!
+Check out our Filters <a href="/bakery/filters">here</a>!
 
 
 ## Help
