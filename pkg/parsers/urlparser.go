@@ -1,7 +1,6 @@
 package parsers
 
 import (
-	"fmt"
 	"math"
 	"path"
 	"regexp"
@@ -136,20 +135,21 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 				if len(splitSubfilter) == 0 {
 					key = "c"
 					param = strings.Split(sf, ",")
+					for _, videoType := range filters {
+						if videoType == "hdr10" {
+							mf.Videos = append(mf.Videos, VideoType("hev1.2"), VideoType("hvc1.2"))
+							continue
+						}
+
+						mf.Videos = append(mf.Videos, VideoType(videoType))
+					}
 				} else {
 					key = splitSubfilter[1]
 					param = strings.Split(splitSubfilter[2], ",")
 				}
 				mf.normalizeSubfilter(StreamType("video"), key, param)
 			}
-			for _, videoType := range filters {
-				if videoType == "hdr10" {
-					mf.Videos = append(mf.Videos, VideoType("hev1.2"), VideoType("hvc1.2"))
-					continue
-				}
 
-				mf.Videos = append(mf.Videos, VideoType(videoType))
-			}
 		case "a":
 			for _, sf := range subfilters {
 				splitSubfilter := re.FindStringSubmatch(sf) // right now, assuming the nested filters are of valid form, maybe add a check here for that
@@ -158,15 +158,16 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 				if len(splitSubfilter) == 0 {
 					key = "c"
 					param = strings.Split(sf, ",")
+					for _, audioType := range filters {
+						mf.Audios = append(mf.Audios, AudioType(audioType))
+					}
 				} else {
 					key = splitSubfilter[1]
 					param = strings.Split(splitSubfilter[2], ",")
 				}
 				mf.normalizeSubfilter(StreamType("audio"), key, param)
 			}
-			for _, audioType := range filters {
-				mf.Audios = append(mf.Audios, AudioType(audioType))
-			}
+
 		case "al":
 			for _, audioLanguage := range filters {
 				mf.AudioLanguages = append(mf.AudioLanguages, AudioLanguage(audioLanguage))
@@ -201,23 +202,6 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 	return masterManifestPath, mf, nil
 }
 
-func (f *MediaFilters) DefinesBitrateFilter() bool {
-	return (f.MinBitrate >= 0 && f.MaxBitrate <= math.MaxInt32) &&
-		(f.MinBitrate < f.MaxBitrate) &&
-		!(f.MinBitrate == 0 && f.MaxBitrate == math.MaxInt32)
-}
-
-func (f *Subfilters) BitrateSubfilterApplies() bool {
-	return f.MinBitrate != 0 || f.MaxBitrate != math.MaxInt32
-}
-
-func (f *MediaFilters) BitrateFilterApplies() bool {
-	overall := f.DefinesBitrateFilter()
-	audio := f.AudioSubFilters.BitrateSubfilterApplies()
-	video := f.VideoSubFilters.BitrateSubfilterApplies()
-	return overall || audio || video
-}
-
 func (f *MediaFilters) initializeBitrateRange() {
 	f.MinBitrate = 0
 	f.MaxBitrate = math.MaxInt32
@@ -227,6 +211,7 @@ func (f *MediaFilters) initializeBitrateRange() {
 	f.VideoSubFilters.MaxBitrate = math.MaxInt32
 }
 
+// SplitAfter splits a string after the matchs of the specified regexp
 func SplitAfter(s string, re *regexp.Regexp) []string {
 	var splitResults []string
 	var position int
@@ -242,6 +227,7 @@ func SplitAfter(s string, re *regexp.Regexp) []string {
 	return append(splitResults, s[position:])
 }
 
+// normalizeSubfilter takes a subfilter and sets AudioSubFilters' or VideoSubFilters' values accordingly.
 func (f *MediaFilters) normalizeSubfilter(streamType StreamType, key string, values []string) {
 	var streamSubfilters *Subfilters
 	switch streamType {
@@ -250,11 +236,15 @@ func (f *MediaFilters) normalizeSubfilter(streamType StreamType, key string, val
 	case "video":
 		streamSubfilters = &f.VideoSubFilters
 	}
-	fmt.Printf("key: %v value: %v\n", key, values)
+
 	switch key {
 	case "c":
 		for _, v := range values {
-			streamSubfilters.Codecs = append(streamSubfilters.Codecs, Codec(v))
+			if v == "hdr10" {
+				streamSubfilters.Codecs = append(streamSubfilters.Codecs, Codec("hev1.2"), Codec("hvc1.2"))
+			} else {
+				streamSubfilters.Codecs = append(streamSubfilters.Codecs, Codec(v))
+			}
 		}
 	case "b":
 		if values[0] != "" {
