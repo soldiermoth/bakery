@@ -712,6 +712,7 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
     </AdaptationSet>
     <AdaptationSet id="1" lang="en" contentType="audio">
       <Representation bandwidth="256" codecs="ac-3" id="0"></Representation>
+      <Representation bandwidth="100" codecs="ec-3" id="1"></Representation>
     </AdaptationSet>
   </Period>
 </MPD>
@@ -728,6 +729,21 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
 </MPD>
 `
 
+	manifestFiltering2048Representation := `<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
+  <BaseURL>http://existing.base/url/</BaseURL>
+  <Period>
+    <AdaptationSet id="0" lang="en" contentType="video">
+      <Representation bandwidth="4096" codecs="avc" id="1"></Representation>
+    </AdaptationSet>
+    <AdaptationSet id="1" lang="en" contentType="audio">
+      <Representation bandwidth="256" codecs="ac-3" id="0"></Representation>
+      <Representation bandwidth="100" codecs="ec-3" id="1"></Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>
+`
+
 	manifestFiltering4096Representation := `<?xml version="1.0" encoding="UTF-8"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" type="static" mediaPresentationDuration="PT6M16S" minBufferTime="PT1.97S">
   <BaseURL>http://existing.base/url/</BaseURL>
@@ -737,6 +753,7 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
     </AdaptationSet>
     <AdaptationSet id="1" lang="en" contentType="audio">
       <Representation bandwidth="256" codecs="ac-3" id="0"></Representation>
+      <Representation bandwidth="100" codecs="ec-3" id="1"></Representation>
     </AdaptationSet>
   </Period>
 </MPD>
@@ -748,6 +765,7 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
   <Period>
     <AdaptationSet id="0" lang="en" contentType="audio">
       <Representation bandwidth="256" codecs="ac-3" id="0"></Representation>
+      <Representation bandwidth="100" codecs="ec-3" id="1"></Representation>
     </AdaptationSet>
   </Period>
 </MPD>
@@ -857,6 +875,44 @@ func TestDASHFilter_FilterManifest_bitrate(t *testing.T) {
 				AudioFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}},
 			manifestContent:       baseManifest,
 			expectManifestContent: manifestFiltering4096Representation,
+		},
+		{
+			name: "when filtering a valid video bitrate range touching upper bound (maxBitrate = math.MaxInt32), expect results to be filtered",
+			filters: &parsers.MediaFilters{
+				MinBitrate: 0, MaxBitrate: math.MaxInt32,
+				VideoFilters: parsers.Subfilters{MinBitrate: 3000, MaxBitrate: math.MaxInt32},
+				AudioFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32},
+			},
+			manifestContent:       baseManifest,
+			expectManifestContent: manifestFiltering2048Representation,
+		},
+		{
+			name: "when given an invalid overall bitrate range and a valid bitrate range for video, expect video to be filtered",
+			filters: &parsers.MediaFilters{
+				MinBitrate: -10, MaxBitrate: math.MaxInt32 + 1,
+				VideoFilters: parsers.Subfilters{MinBitrate: 0, MaxBitrate: 3000},
+				AudioFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}},
+			manifestContent:       baseManifest,
+			expectManifestContent: manifestFiltering4096Representation,
+		},
+		{
+			name: "when given valid overall bitrate range and an valid bitrate range for video overlapping, but not within overall range, expect manifest to be filtered according to overall bitrate range",
+			filters: &parsers.MediaFilters{
+				MinBitrate: 0, MaxBitrate: 3000,
+				VideoFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32},
+				AudioFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32}},
+			manifestContent:       baseManifest,
+			expectManifestContent: manifestFiltering4096Representation,
+		},
+		{
+			name: "when given valid overall bitrate range and a valid, non-overlapping bitrate range for audio, expect manifest to be filtered according to overall bitrate range",
+			filters: &parsers.MediaFilters{
+				MinBitrate: 100, MaxBitrate: 1000,
+				VideoFilters: parsers.Subfilters{MaxBitrate: math.MaxInt32},
+				AudioFilters: parsers.Subfilters{MinBitrate: 2000, MaxBitrate: 3000},
+			},
+			manifestContent:       baseManifest,
+			expectManifestContent: manifestFiltering2048And4096Representations,
 		},
 	}
 
