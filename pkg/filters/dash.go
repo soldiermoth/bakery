@@ -84,7 +84,7 @@ func (d *DASHFilter) getFilters(filters *parsers.MediaFilters) []execFilter {
 		filterList = append(filterList, d.filterCaptionTypes)
 	}
 
-	if filters.DefinesBitrateFilter() {
+	if DefinesBitrateFilter(filters) {
 		filterList = append(filterList, d.filterBandwidth)
 	}
 
@@ -223,18 +223,18 @@ func (d *DASHFilter) filterBandwidth(filters *parsers.MediaFilters, manifest *mp
 					subfilter = &filters.AudioSubFilters
 				case string(videoContentType):
 					subfilter = &filters.VideoSubFilters
+				default:
+					subfilter = nil
 				}
 
 				// if the subfilter in the adaptation set applies to the content type of the adaptation set
-				if subfilter.BitrateSubfilterApplies() {
+				if subfilter != nil && ValidBitrateRange(subfilter.MinBitrate, subfilter.MaxBitrate) {
 					lowerBitrate = int64(subfilter.MinBitrate)
 					upperBitrate = int64(subfilter.MaxBitrate)
 				} else {
 					lowerBitrate = int64(filters.MinBitrate)
 					upperBitrate = int64(filters.MaxBitrate)
 				}
-
-				// to do later: make sure lowerBitrate/upperBitrate fall within the range of the overall filters.Min/MaxBitrate
 
 				for _, r := range as.Representations {
 					if r.Bandwidth == nil {
