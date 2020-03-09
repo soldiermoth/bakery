@@ -21,11 +21,11 @@ func TestURLParseUrl(t *testing.T) {
 				Videos:     []VideoType{"hev1.2", "hvc1.2"},
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 					Codecs:     []Codec{"hev1.2", "hvc1.2"},
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
 			},
@@ -38,11 +38,11 @@ func TestURLParseUrl(t *testing.T) {
 				Videos:     []VideoType{"hev1.2", "hvc1.2", videoHEVC},
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 					Codecs:     []Codec{"hev1.2", "hvc1.2", codecHEVC},
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
 			},
@@ -56,11 +56,11 @@ func TestURLParseUrl(t *testing.T) {
 				Audios:     []AudioType{audioAAC, audioNoAudioDescription},
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 					Codecs:     []Codec{"hev1.2", "hvc1.2", codecHEVC},
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 					Codecs:     []Codec{codecAAC, codecNoAudioDescription},
 				},
@@ -77,11 +77,11 @@ func TestURLParseUrl(t *testing.T) {
 				CaptionLanguages: []CaptionLanguage{captionEN},
 				MaxBitrate:       4000,
 				MinBitrate:       100,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 					Codecs:     []Codec{"hev1.2", "hvc1.2", codecHEVC},
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 					Codecs:     []Codec{codecAAC},
 				},
@@ -94,10 +94,10 @@ func TestURLParseUrl(t *testing.T) {
 			MediaFilters{
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 100,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
 			},
@@ -109,10 +109,10 @@ func TestURLParseUrl(t *testing.T) {
 			MediaFilters{
 				MaxBitrate: 3000,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
 			},
@@ -124,10 +124,10 @@ func TestURLParseUrl(t *testing.T) {
 			MediaFilters{
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: 5000,
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MinBitrate: 100,
 					MaxBitrate: math.MaxInt32,
 				},
@@ -140,10 +140,10 @@ func TestURLParseUrl(t *testing.T) {
 			MediaFilters{
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MinBitrate: 100,
 					MaxBitrate: 200,
 					Codecs:     []Codec{codecAC3, codecAAC},
@@ -157,12 +157,12 @@ func TestURLParseUrl(t *testing.T) {
 			MediaFilters{
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: 2000,
 					MinBitrate: 1000,
 					Codecs:     []Codec{codecH264, "hev1.2", "hvc1.2"},
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
 			},
@@ -175,10 +175,10 @@ func TestURLParseUrl(t *testing.T) {
 				Protocol:   ProtocolHLS,
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
 			},
@@ -191,10 +191,10 @@ func TestURLParseUrl(t *testing.T) {
 				Protocol:   ProtocolDASH,
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
-				VideoSubFilters: Subfilters{
+				VideoFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
-				AudioSubFilters: Subfilters{
+				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
 				},
 			},

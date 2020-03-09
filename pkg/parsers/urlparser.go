@@ -68,9 +68,9 @@ const (
 // MediaFilters is a struct that carry all the information passed via url
 type MediaFilters struct {
 	Videos             []VideoType       `json:",omitempty"`
-	VideoSubFilters    Subfilters        `json:",omitempty"`
+	VideoFilters       Subfilters        `json:",omitempty"`
 	Audios             []AudioType       `json:",omitempty"`
-	AudioSubFilters    Subfilters        `json:",omitempty"`
+	AudioFilters       Subfilters        `json:",omitempty"`
 	AudioLanguages     []AudioLanguage   `json:",omitempty"`
 	CaptionLanguages   []CaptionLanguage `json:",omitempty"`
 	CaptionTypes       []CaptionType     `json:",omitempty"`
@@ -205,10 +205,10 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 func (f *MediaFilters) initializeBitrateRange() {
 	f.MinBitrate = 0
 	f.MaxBitrate = math.MaxInt32
-	f.AudioSubFilters.MinBitrate = 0
-	f.AudioSubFilters.MaxBitrate = math.MaxInt32
-	f.VideoSubFilters.MinBitrate = 0
-	f.VideoSubFilters.MaxBitrate = math.MaxInt32
+	f.AudioFilters.MinBitrate = 0
+	f.AudioFilters.MaxBitrate = math.MaxInt32
+	f.VideoFilters.MinBitrate = 0
+	f.VideoFilters.MaxBitrate = math.MaxInt32
 }
 
 // SplitAfter splits a string after the matchs of the specified regexp
@@ -227,14 +227,14 @@ func SplitAfter(s string, re *regexp.Regexp) []string {
 	return append(splitResults, s[position:])
 }
 
-// normalizeSubfilter takes a subfilter and sets AudioSubFilters' or VideoSubFilters' values accordingly.
+// normalizeSubfilter takes a subfilter and sets AudiFilters' or VideoSubFilters' values accordingly.
 func (f *MediaFilters) normalizeSubfilter(streamType StreamType, key string, values []string) {
 	var streamSubfilters *Subfilters
 	switch streamType {
 	case "audio":
-		streamSubfilters = &f.AudioSubFilters
+		streamSubfilters = &f.AudioFilters
 	case "video":
-		streamSubfilters = &f.VideoSubFilters
+		streamSubfilters = &f.VideoFilters
 	}
 
 	switch key {
