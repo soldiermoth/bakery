@@ -29,7 +29,7 @@ func (p *Propeller) FetchManifest(c config.Config) (string, error) {
 func NewPropeller(c config.Config, orgID string, channelID string) (*Propeller, error) {
 	propellerURL, err := getPropellerChannelURL(c.PropellerHost, orgID, channelID)
 	if err != nil {
-
+		return &Propeller{}, fmt.Errorf("fetching propeller channel: %w", err)
 	}
 	return &Propeller{
 		URL:       propellerURL,

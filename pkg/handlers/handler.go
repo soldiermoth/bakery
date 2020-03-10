@@ -45,7 +45,6 @@ func LoadHandler(c config.Config) http.Handler {
 		// create filter associated to the protocol and set
 		// response headers accordingly
 		var f filters.Filter
-		fmt.Println(mediaFilters.Protocol)
 		switch mediaFilters.Protocol {
 		case parsers.ProtocolHLS:
 			f = filters.NewHLSFilter(manifestOrigin.GetPlaybackURL(), manifestContent, c)
