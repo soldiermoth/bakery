@@ -150,6 +150,7 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 	return masterManifestPath, mf, nil
 }
 
+//DefinesBitrateFilter will check if bitrate filter is set
 func (f *MediaFilters) DefinesBitrateFilter() bool {
 	return (f.MinBitrate >= 0 && f.MaxBitrate <= math.MaxInt32) &&
 		(f.MinBitrate < f.MaxBitrate) &&

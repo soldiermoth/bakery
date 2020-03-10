@@ -96,6 +96,28 @@ func TestURLParseUrl(t *testing.T) {
 			},
 			"/path/here/with/manifest.mpd",
 		},
+		{
+			"detect filters for propeller channels and set path properly",
+			"/v(avc)/a(aac)/propeller/orgID/master.m3u8",
+			MediaFilters{
+				Videos:     []VideoType{videoH264},
+				Audios:     []AudioType{audioAAC},
+				Protocol:   ProtocolHLS,
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 0,
+			},
+			"/propeller/orgID/master.m3u8",
+		},
+		{
+			"set path properly for propeller channel with no filters",
+			"/propeller/orgID/master.m3u8",
+			MediaFilters{
+				Protocol:   ProtocolHLS,
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 0,
+			},
+			"/propeller/orgID/master.m3u8",
+		},
 	}
 	for _, test := range tests {
 		test := test

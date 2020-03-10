@@ -11,10 +11,11 @@ import (
 
 // Config holds all the configuration for this service
 type Config struct {
-	Listen     string `envconfig:"HTTP_PORT" default:":8080"`
-	LogLevel   string `envconfig:"LOG_LEVEL" default:"debug"`
-	OriginHost string `envconfig:"ORIGIN_HOST"`
-	Client     HTTPClient
+	Listen        string `envconfig:"HTTP_PORT" default:":8080"`
+	LogLevel      string `envconfig:"LOG_LEVEL" default:"debug"`
+	OriginHost    string `envconfig:"ORIGIN_HOST"`
+	PropellerHost string `envconfig:"PROPELLER_HOST"`
+	Client        HTTPClient
 }
 
 // HTTPClient will issue requests to the manifest

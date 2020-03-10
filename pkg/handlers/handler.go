@@ -7,6 +7,7 @@ import (
 
 	"github.com/cbsinteractive/bakery/pkg/config"
 	"github.com/cbsinteractive/bakery/pkg/filters"
+	"github.com/cbsinteractive/bakery/pkg/origin"
 	"github.com/cbsinteractive/bakery/pkg/parsers"
 )
 
@@ -27,23 +28,30 @@ func LoadHandler(c config.Config) http.Handler {
 			return
 		}
 
-		// request the origin URL
-		manifestURL := c.OriginHost + masterManifestPath
-		manifestContent, err := fetchManifest(c, manifestURL)
+		//configure origin from path
+		manifestOrigin, err := origin.Configure(c, masterManifestPath)
 		if err != nil {
-			httpError(c, w, err, "failed fetching origin url", http.StatusInternalServerError)
+			httpError(c, w, err, "failed configuring origin", http.StatusInternalServerError)
+			return
+		}
+
+		// fetch manifest from origin
+		manifestContent, err := manifestOrigin.FetchManifest(c)
+		if err != nil {
+			httpError(c, w, err, "failed fetching origin manifest content", http.StatusInternalServerError)
 			return
 		}
 
 		// create filter associated to the protocol and set
 		// response headers accordingly
 		var f filters.Filter
+		fmt.Println(mediaFilters.Protocol)
 		switch mediaFilters.Protocol {
 		case parsers.ProtocolHLS:
-			f = filters.NewHLSFilter(manifestURL, manifestContent, c)
+			f = filters.NewHLSFilter(manifestOrigin.GetPlaybackURL(), manifestContent, c)
 			w.Header().Set("Content-Type", "application/x-mpegURL")
 		case parsers.ProtocolDASH:
-			f = filters.NewDASHFilter(manifestURL, manifestContent, c)
+			f = filters.NewDASHFilter(manifestOrigin.GetPlaybackURL(), manifestContent, c)
 			w.Header().Set("Content-Type", "application/dash+xml")
 		default:
 			err := fmt.Errorf("unsupported protocol %q", mediaFilters.Protocol)
