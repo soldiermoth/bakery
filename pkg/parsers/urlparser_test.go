@@ -136,7 +136,7 @@ func TestURLParseUrl(t *testing.T) {
 		},
 		{
 			"nested codec and bitrate filters in audio",
-			"/a(b(100,200),c(ac-3,aac))/",
+			"/a(b(100,200),codec(ac-3,aac))/",
 			MediaFilters{
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
@@ -153,7 +153,7 @@ func TestURLParseUrl(t *testing.T) {
 		},
 		{
 			"nested codec and bitrate filters in video, plus overall bitrate filters",
-			"/v(c(avc,hdr10),b(1000,2000))/",
+			"/v(codec(avc,hdr10),b(1000,2000))/",
 			MediaFilters{
 				MaxBitrate: math.MaxInt32,
 				MinBitrate: 0,
@@ -164,6 +164,22 @@ func TestURLParseUrl(t *testing.T) {
 				},
 				AudioFilters: Subfilters{
 					MaxBitrate: math.MaxInt32,
+				},
+			},
+			"/",
+		},
+		{
+			"nested bitrate and old format of codec filter",
+			"/a(mp4a,ac-3,b(0,10))/",
+			MediaFilters{
+				MaxBitrate: math.MaxInt32,
+				MinBitrate: 0,
+				VideoFilters: Subfilters{
+					MaxBitrate: math.MaxInt32,
+				},
+				AudioFilters: Subfilters{
+					MaxBitrate: 10,
+					Codecs:     []Codec{"mp4a", codecAC3},
 				},
 			},
 			"/",

@@ -129,25 +129,45 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 		switch key := subparts[1]; key {
 		case "v":
 			for _, sf := range subfilters {
-				splitSubfilter := re.FindStringSubmatch(sf)
+				splitSubfilter := re.FindStringSubmatch(sf) // right now, assuming the nested filters are of valid form, maybe add a check here for that
 				var key string
 				var param []string
 				if len(splitSubfilter) == 0 {
-					key = "c"
+					key = "codec"
 					param = strings.Split(sf, ",")
 					for _, videoType := range filters {
 						if videoType == "hdr10" {
-							mf.Videos = append(mf.Videos, VideoType("hev1.2"), VideoType("hvc1.2"))
-							continue
+							mf.Videos = append(mf.Videos, "hev1.2", "hvc1.2")
+						} else {
+							mf.Videos = append(mf.Videos, VideoType(videoType))
 						}
-
-						mf.Videos = append(mf.Videos, VideoType(videoType))
 					}
 				} else {
 					key = splitSubfilter[1]
 					param = strings.Split(splitSubfilter[2], ",")
 				}
-				mf.normalizeSubfilter(StreamType("video"), key, param)
+
+				// split key by ',' to account for situations like filer(codec,codec,subfilter)
+				splitKey := strings.Split(key, ",")
+				if len(splitKey) == 1 {
+					mf.normalizeSubfilter(StreamType("video"), key, param)
+				} else {
+					var keys []string
+					var params [][]string
+					for i, part := range splitKey {
+						if i == len(splitKey)-1 {
+							keys = append(keys, part)
+							params = append(params, param)
+						} else {
+							keys = append(keys, "codec")
+							params = append(params, []string{part})
+						}
+					}
+
+					for i, _ := range keys {
+						mf.normalizeSubfilter(StreamType("video"), keys[i], params[i])
+					}
+				}
 			}
 
 		case "a":
@@ -156,7 +176,7 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 				var key string
 				var param []string
 				if len(splitSubfilter) == 0 {
-					key = "c"
+					key = "codec"
 					param = strings.Split(sf, ",")
 					for _, audioType := range filters {
 						mf.Audios = append(mf.Audios, AudioType(audioType))
@@ -165,7 +185,28 @@ func URLParse(urlpath string) (string, *MediaFilters, error) {
 					key = splitSubfilter[1]
 					param = strings.Split(splitSubfilter[2], ",")
 				}
-				mf.normalizeSubfilter(StreamType("audio"), key, param)
+
+				// split key by ',' to account for situations like filer(codec,codec,subfilter)
+				splitKey := strings.Split(key, ",")
+				if len(splitKey) == 1 {
+					mf.normalizeSubfilter(StreamType("audio"), key, param)
+				} else {
+					var keys []string
+					var params [][]string
+					for i, part := range splitKey {
+						if i == len(splitKey)-1 {
+							keys = append(keys, part)
+							params = append(params, param)
+						} else {
+							keys = append(keys, "codec")
+							params = append(params, []string{part})
+						}
+					}
+
+					for i, _ := range keys {
+						mf.normalizeSubfilter(StreamType("audio"), keys[i], params[i])
+					}
+				}
 			}
 
 		case "al":
@@ -238,7 +279,7 @@ func (f *MediaFilters) normalizeSubfilter(streamType StreamType, key string, val
 	}
 
 	switch key {
-	case "c":
+	case "codec":
 		for _, v := range values {
 			if v == "hdr10" {
 				streamSubfilters.Codecs = append(streamSubfilters.Codecs, Codec("hev1.2"), Codec("hvc1.2"))
