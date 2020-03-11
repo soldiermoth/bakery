@@ -12,6 +12,10 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go-version }}
+      - name: Configure git for private modules
+        env:
+          TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://cbsi-video-processing-team:${TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
         uses: actions/checkout@v1
       - name: Test
