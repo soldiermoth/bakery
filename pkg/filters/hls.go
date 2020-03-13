@@ -1,6 +1,7 @@
 package filters
 
 import (
+	"encoding/base64"
 	"errors"
 	"net/url"
 	"path/filepath"
@@ -43,7 +44,7 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 	}
 
 	if manifestType != m3u8.MASTER {
-		return "", errors.New("manifest type is wrong")
+		return h.filterRenditionManifest(filters, m.(*m3u8.MediaPlaylist))
 	}
 
 	// convert into the master playlist type
@@ -56,10 +57,12 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 		if aErr != nil {
 			return h.manifestContent, aErr
 		}
+
 		normalizedVariant, err := h.normalizeVariant(v, *absolute)
 		if err != nil {
 			return "", err
 		}
+
 		validatedFilters, err := h.validateVariants(filters, normalizedVariant)
 		if err != nil {
 			return "", err
@@ -69,13 +72,21 @@ func (h *HLSFilter) FilterManifest(filters *parsers.MediaFilters) (string, error
 			continue
 		}
 
-		filteredManifest.Append(normalizedVariant.URI, normalizedVariant.Chunklist, normalizedVariant.VariantParams)
+		uri := normalizedVariant.URI
+		if filters.Trim != nil {
+			encode := []byte(uri)
+			uri = base64.StdEncoding.EncodeToString(encode)
+			//TODO properly add start/end here
+			uri = "http://localhost:8084/t(1000,10000)/propeller/cbsi679d/wcbsbbc1/" + uri + ".m3u8"
+		}
+
+		filteredManifest.Append(uri, normalizedVariant.Chunklist, normalizedVariant.VariantParams)
 	}
 
 	return filteredManifest.String(), nil
 }
 
-// Returns true if specified variant passes all filters
+// Returns true if specified variant should be removed from filter
 func (h *HLSFilter) validateVariants(filters *parsers.MediaFilters, v *m3u8.Variant) (bool, error) {
 	if filters.DefinesBitrateFilter() {
 		if !(h.validateBandwidthVariant(filters.MinBitrate, filters.MaxBitrate, v)) {
@@ -121,7 +132,7 @@ func (h *HLSFilter) validateVariants(filters *parsers.MediaFilters, v *m3u8.Vari
 	return false, nil
 }
 
-// Returns true if the given variant (variantCodecs) should be allowed through the filter for supportedCodecs of filterType
+// Returns true if the given variant (variantCodecs) should be allowed filtered out for supportedCodecs of filterType
 func validateVariantCodecs(filterType ContentType, variantCodecs []string, supportedCodecs map[string]struct{}, supportedFilterTypes map[ContentType]func(string) bool) (bool, error) {
 	var matchFilterType func(string) bool
 

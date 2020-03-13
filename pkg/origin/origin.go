@@ -22,16 +22,21 @@ type Manifest struct {
 
 //Configure will return proper Origin interface
 func Configure(c config.Config, path string) (Origin, error) {
+	fmt.Println(path)
 	if strings.Contains(path, "propeller") {
 		parts := strings.Split(path, "/") //["", "propeller", "orgID", "channelID.m3u8"]
+		var renditionURL string
 		if len(parts) != 4 {
-			return &Propeller{}, fmt.Errorf("url path does not follow `/propeller/orgID/channelID.m3u8`")
+			if len(parts) != 5 {
+				return &Propeller{}, fmt.Errorf("url path does not follow `/propeller/orgID/channelID.m3u8`")
+			}
+			renditionURL = parts[4] //base64.m3u8 is rendition level manifest
 		}
 
 		orgID := parts[2]
 		channelID := strings.Split(parts[3], ".")[0] // split off .m3u8
 
-		o, err := NewPropeller(c, orgID, channelID)
+		o, err := NewPropeller(c, orgID, channelID, renditionURL)
 		if err != nil {
 			return &Propeller{}, fmt.Errorf("configuring propeller origin: %w", err)
 		}
