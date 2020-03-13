@@ -85,9 +85,9 @@ func (h *HLSFilter) validateVariants(filters *parsers.MediaFilters, v *m3u8.Vari
 		}
 	}
 
-	if filters.Audios != nil {
+	if filters.AudioFilters.Codecs != nil {
 		supportedAudioTypes := map[string]struct{}{}
-		for _, at := range filters.Audios {
+		for _, at := range filters.AudioFilters.Codecs {
 			supportedAudioTypes[string(at)] = struct{}{}
 		}
 		res, err := validateVariantCodecs(audioContentType, variantCodecs, supportedAudioTypes, matchFunctions)
@@ -96,9 +96,9 @@ func (h *HLSFilter) validateVariants(filters *parsers.MediaFilters, v *m3u8.Vari
 		}
 	}
 
-	if filters.Videos != nil {
+	if filters.VideoFilters.Codecs != nil {
 		supportedVideoTypes := map[string]struct{}{}
-		for _, vt := range filters.Videos {
+		for _, vt := range filters.VideoFilters.Codecs {
 			supportedVideoTypes[string(vt)] = struct{}{}
 		}
 		res, err := validateVariantCodecs(videoContentType, variantCodecs, supportedVideoTypes, matchFunctions)
